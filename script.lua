@@ -1,6 +1,6 @@
 --[[
-	DRAGON ADMIN v7
-	Abas organizadas + lista vertical (sem sobrepor)
+	DRAGON ADMIN v8
+	Largo + 2 colunas + mais opções
 ]]
 
 local Players = game:GetService("Players")
@@ -29,7 +29,7 @@ upd()
 local flySpeed, walkSpeed, jumpPower, savedCF = 60, 16, 50, nil
 local flying, noclip, infJump, fb, invis, god = false, false, false, false, false, false
 local clickTP, espOn, spinOn, afkOn, autoClick, clickFling = false, false, false, false, false, false
-local antiFling, rainbow, xray, clickDel = false, false, false, false
+local antiFling, rainbow, xray, clickDel, blurOff = false, false, false, false, false
 local bv, bg, goingUp, goingDown = nil, nil, false, false
 local nC, gC, sC, aC, cC, afC, rC
 local flinging = false
@@ -52,8 +52,8 @@ gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = lp:WaitForChild("PlayerGui")
 
 local main = Instance.new("Frame")
-main.Size = UDim2.new(0, 430, 0, 390)
-main.Position = UDim2.new(0.5, -215, 0.5, -195)
+main.Size = UDim2.new(0, 620, 0, 300)
+main.Position = UDim2.new(0.5, -310, 0.5, -150)
 main.BackgroundColor3 = Color3.fromRGB(13, 10, 18)
 main.BackgroundTransparency = 0.04
 main.BorderSizePixel = 0
@@ -69,7 +69,7 @@ stroke.Transparency = 0.25
 stroke.Parent = main
 
 local header = Instance.new("Frame")
-header.Size = UDim2.new(1, 0, 0, 38)
+header.Size = UDim2.new(1, 0, 0, 34)
 header.BackgroundColor3 = Color3.fromRGB(24, 14, 22)
 header.BorderSizePixel = 0
 header.Parent = main
@@ -82,54 +82,51 @@ title.BackgroundTransparency = 1
 title.Text = "🐉  DRAGON ADMIN"
 title.TextColor3 = Color3.fromRGB(255, 210, 195)
 title.Font = Enum.Font.GothamBold
-title.TextSize = 16
+title.TextSize = 15
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = header
 
 local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 28, 0, 28)
-closeBtn.Position = UDim2.new(1, -34, 0, 5)
+closeBtn.Size = UDim2.new(0, 26, 0, 26)
+closeBtn.Position = UDim2.new(1, -32, 0, 4)
 closeBtn.BackgroundColor3 = Color3.fromRGB(175, 42, 50)
 closeBtn.Text = "✕"
 closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 closeBtn.Font = Enum.Font.GothamBold
-closeBtn.TextSize = 14
+closeBtn.TextSize = 13
 closeBtn.Parent = header
 Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 7)
 
--- SIDEBAR
 local side = Instance.new("ScrollingFrame")
-side.Size = UDim2.new(0, 118, 1, -92)
-side.Position = UDim2.new(0, 10, 0, 46)
+side.Size = UDim2.new(0, 108, 1, -80)
+side.Position = UDim2.new(0, 8, 0, 40)
 side.BackgroundColor3 = Color3.fromRGB(18, 13, 24)
-side.BackgroundTransparency = 0.1
 side.BorderSizePixel = 0
 side.ScrollBarThickness = 3
-side.CanvasSize = UDim2.new(0, 0, 0, 0)
 side.AutomaticCanvasSize = Enum.AutomaticSize.Y
+side.CanvasSize = UDim2.new(0, 0, 0, 0)
 side.Parent = main
 Instance.new("UICorner", side).CornerRadius = UDim.new(0, 12)
-
 local sLay = Instance.new("UIListLayout")
-sLay.Padding = UDim.new(0, 8)
+sLay.Padding = UDim.new(0, 7)
 sLay.Parent = side
 local sPad = Instance.new("UIPadding")
-sPad.PaddingTop = UDim.new(0, 10)
-sPad.PaddingBottom = UDim.new(0, 10)
-sPad.PaddingLeft = UDim.new(0, 8)
-sPad.PaddingRight = UDim.new(0, 8)
+sPad.PaddingTop = UDim.new(0, 8)
+sPad.PaddingBottom = UDim.new(0, 8)
+sPad.PaddingLeft = UDim.new(0, 7)
+sPad.PaddingRight = UDim.new(0, 7)
 sPad.Parent = side
 
 local function tabBtn(text)
 	local b = Instance.new("TextButton")
-	b.Size = UDim2.new(1, 0, 0, 34)
+	b.Size = UDim2.new(1, 0, 0, 28)
 	b.BackgroundColor3 = SIDE
 	b.Text = text
 	b.TextColor3 = Color3.fromRGB(205, 185, 192)
 	b.Font = Enum.Font.GothamBold
-	b.TextSize = 13
+	b.TextSize = 12
 	b.Parent = side
-	Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
+	Instance.new("UICorner", b).CornerRadius = UDim.new(0, 7)
 	return b
 end
 
@@ -141,37 +138,37 @@ local tabs = {
 	Visual = tabBtn("Visual"),
 	Extra = tabBtn("Extra"),
 	World = tabBtn("World"),
+	Player = tabBtn("Player"),
 }
 tabs.Main.BackgroundColor3 = THEME
 tabs.Main.TextColor3 = Color3.fromRGB(255, 255, 255)
 
--- PAGES
 local content = Instance.new("Frame")
-content.Size = UDim2.new(1, -148, 1, -98)
-content.Position = UDim2.new(0, 138, 0, 48)
+content.Size = UDim2.new(1, -128, 1, -82)
+content.Position = UDim2.new(0, 122, 0, 40)
 content.BackgroundTransparency = 1
 content.Parent = main
 
 local pages = {}
 local function makePage(name)
 	local sc = Instance.new("ScrollingFrame")
-	sc.Name = name
 	sc.Size = UDim2.new(1, 0, 1, 0)
 	sc.BackgroundTransparency = 1
 	sc.BorderSizePixel = 0
 	sc.ScrollBarThickness = 4
-	sc.CanvasSize = UDim2.new(0, 0, 0, 0)
 	sc.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	sc.CanvasSize = UDim2.new(0, 0, 0, 0)
 	sc.Visible = name == "Main"
 	sc.Parent = content
-
-	local lay = Instance.new("UIListLayout")
-	lay.Padding = UDim.new(0, 8)
-	lay.Parent = sc
+	local grid = Instance.new("UIGridLayout")
+	grid.CellSize = UDim2.new(0, 228, 0, 32)
+	grid.CellPadding = UDim2.new(0, 10, 0, 8)
+	grid.FillDirectionMaxCells = 2
+	grid.SortOrder = Enum.SortOrder.LayoutOrder
+	grid.Parent = sc
 	local pad = Instance.new("UIPadding")
-	pad.PaddingTop = UDim.new(0, 2)
-	pad.PaddingBottom = UDim.new(0, 10)
-	pad.PaddingRight = UDim.new(0, 6)
+	pad.PaddingTop = UDim.new(0, 4)
+	pad.PaddingRight = UDim.new(0, 8)
 	pad.Parent = sc
 	pages[name] = sc
 	return sc
@@ -184,11 +181,10 @@ local pAdm = makePage("Admin")
 local pVis = makePage("Visual")
 local pExt = makePage("Extra")
 local pWld = makePage("World")
+local pPlr = makePage("Player")
 
 local function switch(name)
-	for n, pg in pairs(pages) do
-		pg.Visible = n == name
-	end
+	for n, pg in pairs(pages) do pg.Visible = n == name end
 	for n, b in pairs(tabs) do
 		if n == name then
 			b.BackgroundColor3 = THEME
@@ -199,167 +195,165 @@ local function switch(name)
 		end
 	end
 end
+for n, b in pairs(tabs) do
+	b.MouseButton1Click:Connect(function() switch(n) end)
+end
 
-tabs.Main.MouseButton1Click:Connect(function() switch("Main") end)
-tabs.Move.MouseButton1Click:Connect(function() switch("Move") end)
-tabs.Teleport.MouseButton1Click:Connect(function() switch("Teleport") end)
-tabs.Admin.MouseButton1Click:Connect(function() switch("Admin") end)
-tabs.Visual.MouseButton1Click:Connect(function() switch("Visual") end)
-tabs.Extra.MouseButton1Click:Connect(function() switch("Extra") end)
-tabs.World.MouseButton1Click:Connect(function() switch("World") end)
-
-local function fullBtn(parent, text, color)
+local function btn(parent, text, color)
 	local b = Instance.new("TextButton")
-	b.Size = UDim2.new(1, 0, 0, 36)
 	b.BackgroundColor3 = color or OFF
 	b.Text = text
 	b.TextColor3 = Color3.fromRGB(255, 255, 255)
 	b.Font = Enum.Font.GothamMedium
-	b.TextSize = 14
+	b.TextSize = 13
 	b.Parent = parent
-	Instance.new("UICorner", b).CornerRadius = UDim.new(0, 9)
+	Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
 	return b
 end
-
-local function labeledBox(parent, labelText, default)
-	local row = Instance.new("Frame")
-	row.Size = UDim2.new(1, 0, 0, 58)
-	row.BackgroundTransparency = 1
-	row.Parent = parent
-
-	local lab = Instance.new("TextLabel")
-	lab.Size = UDim2.new(1, 0, 0, 18)
-	lab.BackgroundTransparency = 1
-	lab.Text = labelText
-	lab.TextColor3 = Color3.fromRGB(200, 180, 188)
-	lab.Font = Enum.Font.Gotham
-	lab.TextSize = 12
-	lab.TextXAlignment = Enum.TextXAlignment.Left
-	lab.Parent = row
-
-	local box = Instance.new("TextBox")
-	box.Size = UDim2.new(1, 0, 0, 34)
-	box.Position = UDim2.new(0, 0, 0, 22)
-	box.BackgroundColor3 = Color3.fromRGB(28, 18, 30)
-	box.Text = default
-	box.TextColor3 = Color3.fromRGB(255, 255, 255)
-	box.Font = Enum.Font.Gotham
-	box.TextSize = 14
-	box.Parent = row
-	Instance.new("UICorner", box).CornerRadius = UDim.new(0, 8)
-	return box
+local function box(parent, text)
+	local t = Instance.new("TextBox")
+	t.BackgroundColor3 = Color3.fromRGB(28, 18, 30)
+	t.Text = text
+	t.TextColor3 = Color3.fromRGB(255, 255, 255)
+	t.Font = Enum.Font.Gotham
+	t.TextSize = 13
+	t.Parent = parent
+	Instance.new("UICorner", t).CornerRadius = UDim.new(0, 8)
+	return t
 end
-
 local function tog(b, on, a, o)
 	b.Text = on and a or o
 	b.BackgroundColor3 = on and ON or OFF
 end
 
 -- MAIN
-local flyBtn = fullBtn(pMain, "Fly: OFF")
-local flyBox = labeledBox(pMain, "Velocidade do Fly", "60")
-local spdBox = labeledBox(pMain, "Walk Speed", "16")
-local jmpBox = labeledBox(pMain, "Super Pulo", "50")
-local applyBtn = fullBtn(pMain, "Aplicar valores", THEME)
+local flyBtn = btn(pMain, "Fly: OFF")
+local flyBox = box(pMain, "Fly 60")
+local spdBox = box(pMain, "Walk 16")
+local jmpBox = box(pMain, "Jump 50")
+local applyBtn = btn(pMain, "Aplicar valores", THEME)
+local fly30 = btn(pMain, "Fly 30", THEME)
+local fly80 = btn(pMain, "Fly 80", THEME)
+local fly150 = btn(pMain, "Fly 150", THEME)
 
 -- MOVE
-local infBtn = fullBtn(pMove, "Infinite Jump: OFF")
-local ncBtn = fullBtn(pMove, "Noclip: OFF")
-local sitBtn = fullBtn(pMove, "Sit / Unsit")
-local frzBtn = fullBtn(pMove, "Freeze: OFF")
-local hipP = fullBtn(pMove, "HipHeight +")
-local hipM = fullBtn(pMove, "HipHeight -")
-local s16 = fullBtn(pMove, "Speed 16", THEME)
-local s50 = fullBtn(pMove, "Speed 50", THEME)
-local s100 = fullBtn(pMove, "Speed 100", THEME)
-local platBtn = fullBtn(pMove, "Criar plataforma")
+local infBtn = btn(pMove, "Inf Jump: OFF")
+local ncBtn = btn(pMove, "Noclip: OFF")
+local sitBtn = btn(pMove, "Sit / Unsit")
+local frzBtn = btn(pMove, "Freeze: OFF")
+local hipP = btn(pMove, "HipHeight +")
+local hipM = btn(pMove, "HipHeight -")
+local s16 = btn(pMove, "Speed 16", THEME)
+local s50 = btn(pMove, "Speed 50", THEME)
+local s100 = btn(pMove, "Speed 100", THEME)
+local s200 = btn(pMove, "Speed 200", THEME)
+local j50 = btn(pMove, "Jump 50")
+local j120 = btn(pMove, "Jump 120")
+local platBtn = btn(pMove, "Plataforma")
+local unsit = btn(pMove, "Anti Sit")
 
--- TELEPORT
-local refBtn = fullBtn(pTP, "Atualizar lista", THEME)
+-- TELEPORT usa lista vertical
+for _, v in ipairs(pTP:GetChildren()) do if v:IsA("UIGridLayout") then v:Destroy() end end
+local tpLay = Instance.new("UIListLayout")
+tpLay.Padding = UDim.new(0, 7)
+tpLay.Parent = pTP
+local refBtn = btn(pTP, "Atualizar lista", THEME)
+refBtn.Size = UDim2.new(1, -8, 0, 32)
 local list = Instance.new("Frame")
-list.Size = UDim2.new(1, 0, 0, 10)
+list.Size = UDim2.new(1, -8, 0, 10)
 list.AutomaticSize = Enum.AutomaticSize.Y
 list.BackgroundTransparency = 1
 list.Parent = pTP
-local listLay = Instance.new("UIListLayout")
-listLay.Padding = UDim.new(0, 8)
-listLay.Parent = list
+Instance.new("UIListLayout", list).Padding = UDim.new(0, 7)
 
 -- ADMIN
-local invBtn = fullBtn(pAdm, "Invisivel: OFF")
-local godBtn = fullBtn(pAdm, "GodMode: OFF")
-local ctpBtn = fullBtn(pAdm, "Click TP: OFF")
-local flBtn = fullBtn(pAdm, "Click Fling: OFF", Color3.fromRGB(155, 42, 48))
-local afBtn = fullBtn(pAdm, "Anti Fling: OFF")
-local cdBtn = fullBtn(pAdm, "Click Delete: OFF")
-local svBtn = fullBtn(pAdm, "Salvar posicao")
-local ldBtn = fullBtn(pAdm, "Carregar posicao")
-local rstBtn = fullBtn(pAdm, "Reset personagem", THEME)
-local rjBtn = fullBtn(pAdm, "Rejoin", THEME)
-local hpBtn = fullBtn(pAdm, "Server Hop", Color3.fromRGB(95, 42, 115))
-local specBtn = fullBtn(pAdm, "Unspectate")
+local invBtn = btn(pAdm, "Invisivel: OFF")
+local godBtn = btn(pAdm, "GodMode: OFF")
+local ctpBtn = btn(pAdm, "Click TP: OFF")
+local flBtn = btn(pAdm, "Click Fling: OFF", Color3.fromRGB(155, 42, 48))
+local afBtn = btn(pAdm, "Anti Fling: OFF")
+local cdBtn = btn(pAdm, "Click Delete: OFF")
+local svBtn = btn(pAdm, "Save Pos")
+local ldBtn = btn(pAdm, "Load Pos")
+local rstBtn = btn(pAdm, "Reset Char", THEME)
+local rjBtn = btn(pAdm, "Rejoin", THEME)
+local hpBtn = btn(pAdm, "Server Hop", Color3.fromRGB(95, 42, 115))
+local specBtn = btn(pAdm, "Unspectate")
 
 -- VISUAL
-local fbBtn = fullBtn(pVis, "Fullbright: OFF")
-local fogBtn = fullBtn(pVis, "No Fog: OFF")
-local espBtn = fullBtn(pVis, "ESP: OFF")
-local xrBtn = fullBtn(pVis, "XRay: OFF")
-local rbBtn = fullBtn(pVis, "Rainbow: OFF")
-local fovBox = labeledBox(pVis, "FOV (1 a 120)", "70")
-local fovBtn = fullBtn(pVis, "Aplicar FOV", THEME)
-local nite = fullBtn(pVis, "Noite")
-local day = fullBtn(pVis, "Dia")
-local rcam = fullBtn(pVis, "Reset camera")
+local fbBtn = btn(pVis, "Fullbright: OFF")
+local fogBtn = btn(pVis, "No Fog: OFF")
+local espBtn = btn(pVis, "ESP: OFF")
+local xrBtn = btn(pVis, "XRay: OFF")
+local rbBtn = btn(pVis, "Rainbow: OFF")
+local fovBox = box(pVis, "FOV 70")
+local fovBtn = btn(pVis, "Aplicar FOV", THEME)
+local nite = btn(pVis, "Noite")
+local day = btn(pVis, "Dia")
+local rcam = btn(pVis, "Reset Cam")
+local noBlur = btn(pVis, "No Blur")
+local noShadow = btn(pVis, "No Shadows")
 
 -- EXTRA
-local spBtn = fullBtn(pExt, "Spin: OFF")
-local akBtn = fullBtn(pExt, "Anti AFK: OFF")
-local acBtn = fullBtn(pExt, "AutoClick: OFF")
-local fpsBtn = fullBtn(pExt, "FPS Boost", Color3.fromRGB(95, 42, 115))
-local cpBtn = fullBtn(pExt, "Copiar posicao")
-local hatBtn = fullBtn(pExt, "Remover hats")
-local clBtn = fullBtn(pExt, "Remover roupa")
-local tlBtn = fullBtn(pExt, "Remover tools")
-local zmBtn = fullBtn(pExt, "Zoom infinito")
-local waveBtn = fullBtn(pExt, "Emote Wave")
-local danceBtn = fullBtn(pExt, "Emote Dance")
-local cheerBtn = fullBtn(pExt, "Emote Cheer")
-local laughBtn = fullBtn(pExt, "Emote Laugh")
+local spBtn = btn(pExt, "Spin: OFF")
+local akBtn = btn(pExt, "Anti AFK: OFF")
+local acBtn = btn(pExt, "AutoClick: OFF")
+local fpsBtn = btn(pExt, "FPS Boost", Color3.fromRGB(95, 42, 115))
+local cpBtn = btn(pExt, "Copy Pos")
+local hatBtn = btn(pExt, "Rem Hats")
+local clBtn = btn(pExt, "Rem Roupa")
+local tlBtn = btn(pExt, "Rem Tools")
+local zmBtn = btn(pExt, "Zoom Inf")
+local faceBtn = btn(pExt, "Rem Face")
+local waveBtn = btn(pExt, "Wave")
+local danceBtn = btn(pExt, "Dance")
+local cheerBtn = btn(pExt, "Cheer")
+local laughBtn = btn(pExt, "Laugh")
 
 -- WORLD
-local gBox = labeledBox(pWld, "Gravity", "196.2")
-local gBtn = fullBtn(pWld, "Aplicar gravity", THEME)
-local moon = fullBtn(pWld, "Gravidade da Lua")
-local earth = fullBtn(pWld, "Gravidade da Terra")
-local noP = fullBtn(pWld, "Desligar particulas")
-local mute = fullBtn(pWld, "Mutar sons")
-local now = fullBtn(pWld, "Remover agua")
-local bright = fullBtn(pWld, "Mais brilho")
-local dark = fullBtn(pWld, "Escurecer")
+local gBox = box(pWld, "196.2")
+local gBtn = btn(pWld, "Set Gravity", THEME)
+local moon = btn(pWld, "Lua 30")
+local earth = btn(pWld, "Terra 196")
+local noP = btn(pWld, "No Particles")
+local mute = btn(pWld, "Mute Sounds")
+local now = btn(pWld, "No Water")
+local bright = btn(pWld, "Bright+")
+local dark = btn(pWld, "Dark")
+local noAtm = btn(pWld, "No Atmosphere")
+
+-- PLAYER
+local copyUser = btn(pPlr, "Copiar User", THEME)
+local copyId = btn(pPlr, "Copiar UserId", THEME)
+local copyJob = btn(pPlr, "Copiar JobId")
+local copyPlace = btn(pPlr, "Copiar PlaceId")
+local respawn = btn(pPlr, "Respawn", THEME)
+local fp = btn(pPlr, "1a Pessoa")
+local tpv = btn(pPlr, "3a Pessoa")
 
 -- CMD
 local cmd = Instance.new("TextBox")
-cmd.Size = UDim2.new(1, -20, 0, 32)
-cmd.Position = UDim2.new(0, 10, 1, -42)
+cmd.Size = UDim2.new(1, -16, 0, 28)
+cmd.Position = UDim2.new(0, 8, 1, -36)
 cmd.BackgroundColor3 = Color3.fromRGB(22, 15, 26)
-cmd.PlaceholderText = ";fly   ;speed 50   ;tp nome   ;help"
+cmd.PlaceholderText = ";fly  ;speed 50  ;tp nome  ;help"
 cmd.Text = ""
 cmd.TextColor3 = Color3.fromRGB(255, 255, 255)
 cmd.PlaceholderColor3 = Color3.fromRGB(145, 125, 135)
 cmd.Font = Enum.Font.Gotham
-cmd.TextSize = 13
+cmd.TextSize = 12
 cmd.ClearTextOnFocus = false
 cmd.Parent = main
 Instance.new("UICorner", cmd).CornerRadius = UDim.new(0, 8)
 
 local openBtn = Instance.new("TextButton")
-openBtn.Size = UDim2.new(0, 48, 0, 48)
-openBtn.Position = UDim2.new(0, 14, 0.5, -24)
+openBtn.Size = UDim2.new(0, 46, 0, 46)
+openBtn.Position = UDim2.new(0, 12, 0.5, -23)
 openBtn.BackgroundColor3 = THEME
 openBtn.Text = "🐉"
 openBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 openBtn.Font = Enum.Font.GothamBold
-openBtn.TextSize = 18
+openBtn.TextSize = 17
 openBtn.Visible = false
 openBtn.Active = true
 openBtn.Draggable = true
@@ -367,25 +361,25 @@ openBtn.Parent = gui
 Instance.new("UICorner", openBtn).CornerRadius = UDim.new(1, 0)
 
 local upB = Instance.new("TextButton")
-upB.Size = UDim2.new(0, 46, 0, 46)
-upB.Position = UDim2.new(1, -60, 0.5, -56)
+upB.Size = UDim2.new(0, 44, 0, 44)
+upB.Position = UDim2.new(1, -56, 0.5, -52)
 upB.BackgroundColor3 = Color3.fromRGB(40, 130, 70)
 upB.Text = "↑"
 upB.TextColor3 = Color3.fromRGB(255, 255, 255)
 upB.Font = Enum.Font.GothamBold
-upB.TextSize = 18
+upB.TextSize = 17
 upB.Visible = false
 upB.Parent = gui
 Instance.new("UICorner", upB).CornerRadius = UDim.new(0, 10)
 
 local dnB = Instance.new("TextButton")
-dnB.Size = UDim2.new(0, 46, 0, 46)
-dnB.Position = UDim2.new(1, -60, 0.5, 12)
+dnB.Size = UDim2.new(0, 44, 0, 44)
+dnB.Position = UDim2.new(1, -56, 0.5, 10)
 dnB.BackgroundColor3 = Color3.fromRGB(150, 42, 48)
 dnB.Text = "↓"
 dnB.TextColor3 = Color3.fromRGB(255, 255, 255)
 dnB.Font = Enum.Font.GothamBold
-dnB.TextSize = 18
+dnB.TextSize = 17
 dnB.Visible = false
 dnB.Parent = gui
 Instance.new("UICorner", dnB).CornerRadius = UDim.new(0, 10)
@@ -453,7 +447,15 @@ dnB.MouseLeave:Connect(function() goingDown = false end)
 
 local function setSpeed(n)
 	upd()
-	if hum then walkSpeed = n hum.WalkSpeed = n spdBox.Text = tostring(n) end
+	if hum then walkSpeed = n hum.WalkSpeed = n spdBox.Text = "Walk "..n end
+end
+local function setJump(n)
+	upd()
+	if hum then jumpPower = n hum.UseJumpPower = true hum.JumpPower = n jmpBox.Text = "Jump "..n end
+end
+local function setFlySpd(n)
+	flySpeed = n
+	flyBox.Text = "Fly "..n
 end
 
 local function setNoclip(state)
@@ -564,7 +566,6 @@ mouse.Button1Down:Connect(function()
 		if hit then root.CFrame = CFrame.new(hit.Position + Vector3.new(0, 3, 0)) end
 	end
 end)
-
 UIS.InputBegan:Connect(function(i, p)
 	if p or not clickFling then return end
 	if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
@@ -579,12 +580,12 @@ local function refresh()
 	for _, plr in ipairs(Players:GetPlayers()) do
 		if plr ~= lp then
 			local b = Instance.new("TextButton")
-			b.Size = UDim2.new(1, 0, 0, 34)
+			b.Size = UDim2.new(1, 0, 0, 32)
 			b.BackgroundColor3 = Color3.fromRGB(44, 28, 40)
 			b.Text = plr.DisplayName
 			b.TextColor3 = Color3.fromRGB(255, 255, 255)
 			b.Font = Enum.Font.Gotham
-			b.TextSize = 14
+			b.TextSize = 13
 			b.Parent = list
 			Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
 			b.MouseButton1Click:Connect(function() tpTo(plr) end)
@@ -617,21 +618,23 @@ RS.RenderStepped:Connect(function()
 	end
 end)
 
+local function numFrom(boxObj, fallback)
+	local n = tonumber((boxObj.Text or ""):match("[%d%.]+"))
+	return n or fallback
+end
+
 local function runCmd(raw)
 	local args = {}
 	for w in string.gmatch(string.lower(raw or ""), "%S+") do table.insert(args, w) end
 	local c = args[1]
 	if not c then return end
 	c = c:gsub("^;", "")
-	if c == "help" then note("fly speed jump tp noclip god invis esp fov grav rejoin reset")
+	if c == "help" then note("fly speed jump tp noclip god invis esp fov grav rejoin")
 	elseif c == "fly" then setFly(not flying)
 	elseif c == "speed" then setSpeed(tonumber(args[2]) or 50)
-	elseif c == "jump" then
-		upd()
-		if hum then jumpPower = tonumber(args[2]) or 100 hum.UseJumpPower = true hum.JumpPower = jumpPower end
+	elseif c == "jump" then setJump(tonumber(args[2]) or 100)
 	elseif c == "tp" and args[2] then
-		local p = findPlr(args[2])
-		if p then tpTo(p) else note("Player nao achado") end
+		local p = findPlr(args[2]); if p then tpTo(p) else note("nao achado") end
 	elseif c == "noclip" then setNoclip(not noclip)
 	elseif c == "god" then setGod(not god)
 	elseif c == "rejoin" then TS:Teleport(game.PlaceId, lp)
@@ -650,9 +653,7 @@ local function runCmd(raw)
 	elseif c == "esp" then
 		espOn = not espOn
 		tog(espBtn, espOn, "ESP: ON", "ESP: OFF")
-	else
-		note("Invalido. ;help")
-	end
+	else note("Invalido. ;help") end
 end
 cmd.FocusLost:Connect(function(enter)
 	if enter then runCmd(cmd.Text) cmd.Text = "" end
@@ -662,15 +663,18 @@ flyBtn.MouseButton1Click:Connect(function() setFly(not flying) end)
 applyBtn.MouseButton1Click:Connect(function()
 	upd()
 	if not hum then return end
-	local f, s, j = tonumber(flyBox.Text), tonumber(spdBox.Text), tonumber(jmpBox.Text)
-	if f and f > 0 then flySpeed = f end
-	if s and s > 0 then walkSpeed = s hum.WalkSpeed = s end
-	if j and j > 0 then jumpPower = j hum.UseJumpPower = true hum.JumpPower = j end
+	setFlySpd(numFrom(flyBox, flySpeed))
+	setSpeed(numFrom(spdBox, walkSpeed))
+	setJump(numFrom(jmpBox, jumpPower))
 	note("Aplicado")
 end)
-infBtn.MouseButton1Click:Connect(function() infJump = not infJump tog(infBtn, infJump, "Infinite Jump: ON", "Infinite Jump: OFF") end)
+fly30.MouseButton1Click:Connect(function() setFlySpd(30) end)
+fly80.MouseButton1Click:Connect(function() setFlySpd(80) end)
+fly150.MouseButton1Click:Connect(function() setFlySpd(150) end)
+infBtn.MouseButton1Click:Connect(function() infJump = not infJump tog(infBtn, infJump, "Inf Jump: ON", "Inf Jump: OFF") end)
 ncBtn.MouseButton1Click:Connect(function() setNoclip(not noclip) end)
 sitBtn.MouseButton1Click:Connect(function() upd() if hum then hum.Sit = not hum.Sit end end)
+unsit.MouseButton1Click:Connect(function() upd() if hum then hum.Sit = false end end)
 frzBtn.MouseButton1Click:Connect(function()
 	upd()
 	if root then root.Anchored = not root.Anchored tog(frzBtn, root.Anchored, "Freeze: ON", "Freeze: OFF") end
@@ -680,6 +684,9 @@ hipM.MouseButton1Click:Connect(function() upd() if hum then hum.HipHeight = math
 s16.MouseButton1Click:Connect(function() setSpeed(16) end)
 s50.MouseButton1Click:Connect(function() setSpeed(50) end)
 s100.MouseButton1Click:Connect(function() setSpeed(100) end)
+s200.MouseButton1Click:Connect(function() setSpeed(200) end)
+j50.MouseButton1Click:Connect(function() setJump(50) end)
+j120.MouseButton1Click:Connect(function() setJump(120) end)
 platBtn.MouseButton1Click:Connect(function()
 	upd()
 	if root then
@@ -782,7 +789,7 @@ rbBtn.MouseButton1Click:Connect(function()
 		end)
 	elseif rC then rC:Disconnect() rC = nil end
 end)
-fovBtn.MouseButton1Click:Connect(function() cam.FieldOfView = tonumber(fovBox.Text) or 70 end)
+fovBtn.MouseButton1Click:Connect(function() cam.FieldOfView = numFrom(fovBox, 70) end)
 nite.MouseButton1Click:Connect(function() Lighting.ClockTime = 0 end)
 day.MouseButton1Click:Connect(function() Lighting.ClockTime = 14 end)
 rcam.MouseButton1Click:Connect(function()
@@ -790,6 +797,12 @@ rcam.MouseButton1Click:Connect(function()
 	cam.FieldOfView = 70
 	if hum then cam.CameraSubject = hum end
 end)
+noBlur.MouseButton1Click:Connect(function()
+	for _, v in ipairs(Lighting:GetChildren()) do
+		if v:IsA("BlurEffect") then v.Enabled = false end
+	end
+end)
+noShadow.MouseButton1Click:Connect(function() Lighting.GlobalShadows = false end)
 spBtn.MouseButton1Click:Connect(function()
 	spinOn = not spinOn
 	tog(spBtn, spinOn, "Spin: ON", "Spin: OFF")
@@ -827,9 +840,7 @@ fpsBtn.MouseButton1Click:Connect(function() pcall(function() settings().Renderin
 cpBtn.MouseButton1Click:Connect(function()
 	upd()
 	if root then
-		pcall(function()
-			setclipboard(string.format("%.1f, %.1f, %.1f", root.Position.X, root.Position.Y, root.Position.Z))
-		end)
+		pcall(function() setclipboard(string.format("%.1f, %.1f, %.1f", root.Position.X, root.Position.Y, root.Position.Z)) end)
 	end
 end)
 hatBtn.MouseButton1Click:Connect(function()
@@ -852,12 +863,23 @@ tlBtn.MouseButton1Click:Connect(function()
 	end
 end)
 zmBtn.MouseButton1Click:Connect(function() lp.CameraMaxZoomDistance = 9999 lp.CameraMinZoomDistance = 0.5 end)
+faceBtn.MouseButton1Click:Connect(function()
+	upd()
+	if char then
+		local head = char:FindFirstChild("Head")
+		if head then
+			for _, v in ipairs(head:GetChildren()) do
+				if v:IsA("Decal") then v:Destroy() end
+			end
+		end
+	end
+end)
 local function emote(n) upd() pcall(function() hum:PlayEmote(n) end) end
 waveBtn.MouseButton1Click:Connect(function() emote("wave") end)
 danceBtn.MouseButton1Click:Connect(function() emote("dance") end)
 cheerBtn.MouseButton1Click:Connect(function() emote("cheer") end)
 laughBtn.MouseButton1Click:Connect(function() emote("laugh") end)
-gBtn.MouseButton1Click:Connect(function() workspace.Gravity = tonumber(gBox.Text) or 196.2 end)
+gBtn.MouseButton1Click:Connect(function() workspace.Gravity = numFrom(gBox, 196.2) end)
 moon.MouseButton1Click:Connect(function() workspace.Gravity = 30 gBox.Text = "30" end)
 earth.MouseButton1Click:Connect(function() workspace.Gravity = 196.2 gBox.Text = "196.2" end)
 noP.MouseButton1Click:Connect(function()
@@ -873,6 +895,18 @@ now.MouseButton1Click:Connect(function()
 end)
 bright.MouseButton1Click:Connect(function() Lighting.Brightness = 5 end)
 dark.MouseButton1Click:Connect(function() Lighting.Brightness = 0.3 Lighting.ClockTime = 0 end)
+noAtm.MouseButton1Click:Connect(function()
+	for _, v in ipairs(Lighting:GetChildren()) do
+		if v:IsA("Atmosphere") then v:Destroy() end
+	end
+end)
+copyUser.MouseButton1Click:Connect(function() pcall(function() setclipboard(lp.Name) end) note("User") end)
+copyId.MouseButton1Click:Connect(function() pcall(function() setclipboard(tostring(lp.UserId)) end) end)
+copyJob.MouseButton1Click:Connect(function() pcall(function() setclipboard(game.JobId) end) end)
+copyPlace.MouseButton1Click:Connect(function() pcall(function() setclipboard(tostring(game.PlaceId)) end) end)
+respawn.MouseButton1Click:Connect(function() if hum then hum.Health = 0 end end)
+fp.MouseButton1Click:Connect(function() lp.CameraMode = Enum.CameraMode.LockFirstPerson end)
+tpv.MouseButton1Click:Connect(function() lp.CameraMode = Enum.CameraMode.Classic lp.CameraMaxZoomDistance = 128 end)
 
 closeBtn.MouseButton1Click:Connect(function() main.Visible = false openBtn.Visible = true end)
 openBtn.MouseButton1Click:Connect(function() main.Visible = true openBtn.Visible = false end)
@@ -890,4 +924,4 @@ task.spawn(function()
 	while true do refresh() task.wait(4) end
 end)
 
-print("✅ Dragon v7")
+print("✅ Dragon v8")
