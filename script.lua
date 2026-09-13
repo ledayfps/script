@@ -1,6 +1,5 @@
 --[[
-	DRAGON ADMIN - Sidebar Style
-	Abas na esquerda + tudo arrastável
+	DRAGON ADMIN - Sidebar + AutoClick
 ]]
 
 local Players = game:GetService("Players")
@@ -10,6 +9,7 @@ local Lighting = game:GetService("Lighting")
 local TeleportService = game:GetService("TeleportService")
 local StarterGui = game:GetService("StarterGui")
 local HttpService = game:GetService("HttpService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 
 local player = Players.LocalPlayer
 local mouse = player:GetMouse()
@@ -30,13 +30,14 @@ local flySpeed = 60
 local walkSpeed = 16
 local jumpPower = 50
 local savedCFrame = nil
+local clickDelay = 0.05 -- velocidade do autoclick (quanto menor = mais rápido)
 
 -- Estados
 local flying, noclip, infJump, fullbright, invisible, godmode = false, false, false, false, false, false
-local clickTP, espEnabled, spinEnabled, antiAFK = false, false, false, false
+local clickTP, espEnabled, spinEnabled, antiAFK, autoClick = false, false, false, false, false
 local bodyVelocity, bodyGyro = nil, nil
 local goingUp, goingDown = false, false
-local noclipConn, godConn, spinConn, afkConn = nil, nil, nil, nil
+local noclipConn, godConn, spinConn, afkConn, clickConn = nil, nil, nil, nil, nil
 
 -- ======================
 -- GUI
@@ -47,7 +48,6 @@ gui.ResetOnSpawn = false
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = player:WaitForChild("PlayerGui")
 
--- Painel principal
 local main = Instance.new("Frame")
 main.Name = "Main"
 main.Size = UDim2.new(0, 420, 0, 280)
@@ -56,7 +56,7 @@ main.BackgroundColor3 = Color3.fromRGB(12, 10, 18)
 main.BackgroundTransparency = 0.15
 main.BorderSizePixel = 0
 main.Active = true
-main.Draggable = true          -- << arrastável
+main.Draggable = true
 main.Parent = gui
 Instance.new("UICorner", main).CornerRadius = UDim.new(0, 12)
 
@@ -66,7 +66,6 @@ stroke.Thickness = 1.5
 stroke.Transparency = 0.3
 stroke.Parent = main
 
--- Título
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0, 30)
 title.BackgroundColor3 = Color3.fromRGB(22, 14, 22)
@@ -78,7 +77,6 @@ title.TextSize = 14
 title.Parent = main
 Instance.new("UICorner", title).CornerRadius = UDim.new(0, 12)
 
--- Fechar
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 26, 0, 26)
 closeBtn.Position = UDim2.new(1, -30, 0, 2)
@@ -90,7 +88,7 @@ closeBtn.TextSize = 13
 closeBtn.Parent = main
 Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 6)
 
--- ===== SIDEBAR (esquerda) =====
+-- SIDEBAR
 local sidebar = Instance.new("Frame")
 sidebar.Size = UDim2.new(0, 110, 1, -36)
 sidebar.Position = UDim2.new(0, 6, 0, 34)
@@ -133,7 +131,7 @@ local btnExtra    = createSideBtn("Extra")
 btnMain.BackgroundColor3 = Color3.fromRGB(150, 45, 45)
 btnMain.TextColor3 = Color3.fromRGB(255, 255, 255)
 
--- ===== CONTEÚDO (direita) =====
+-- CONTEÚDO
 local content = Instance.new("Frame")
 content.Size = UDim2.new(1, -128, 1, -42)
 content.Position = UDim2.new(0, 122, 0, 36)
@@ -223,24 +221,21 @@ local function makeBox(parent, text, pos)
 	return t
 end
 
--- ========== MAIN ==========
+-- MAIN
 local flyBtn = makeBtn(pageMain, "🕊️ Fly: OFF", UDim2.new(0, 0, 0, 0))
 local flyBox = makeBox(pageMain, "60", UDim2.new(0, 140, 0, 2))
 makeLabel(pageMain, "Fly Speed", UDim2.new(0, 140, 0, -12))
-
 local speedBox = makeBox(pageMain, "16", UDim2.new(0, 215, 0, 2))
 makeLabel(pageMain, "Walk", UDim2.new(0, 215, 0, -12))
-
 local jumpBox = makeBox(pageMain, "50", UDim2.new(0, 290, 0, 2))
 makeLabel(pageMain, "Jump", UDim2.new(0, 290, 0, -12))
-
 local applyBtn = makeBtn(pageMain, "Aplicar", UDim2.new(0, 0, 0, 40), UDim2.new(0, 100, 0, 30), Color3.fromRGB(140, 40, 40))
 local infBtn = makeBtn(pageMain, "Inf Jump: OFF", UDim2.new(0, 110, 0, 40))
 local noclipBtn = makeBtn(pageMain, "Noclip: OFF", UDim2.new(0, 0, 0, 80))
 local hipBtn = makeBtn(pageMain, "HipHeight +", UDim2.new(0, 140, 0, 80))
 local sitBtn = makeBtn(pageMain, "Sit / Unsit", UDim2.new(0, 0, 0, 120))
 
--- ========== TELEPORT ==========
+-- TELEPORT
 local list = Instance.new("ScrollingFrame")
 list.Size = UDim2.new(1, 0, 1, 0)
 list.BackgroundColor3 = Color3.fromRGB(20, 14, 24)
@@ -250,12 +245,11 @@ list.ScrollBarThickness = 4
 list.CanvasSize = UDim2.new(0, 0, 0, 0)
 list.Parent = pageTeleport
 Instance.new("UICorner", list).CornerRadius = UDim.new(0, 8)
-
 local listLayout = Instance.new("UIListLayout")
 listLayout.Padding = UDim.new(0, 6)
 listLayout.Parent = list
 
--- ========== ADMIN ==========
+-- ADMIN
 local invisBtn = makeBtn(pageAdmin, "Invisível: OFF", UDim2.new(0, 0, 0, 0))
 local godBtn = makeBtn(pageAdmin, "GodMode: OFF", UDim2.new(0, 140, 0, 0))
 local clickBtn = makeBtn(pageAdmin, "Click TP: OFF", UDim2.new(0, 0, 0, 40))
@@ -265,7 +259,7 @@ local loadBtn = makeBtn(pageAdmin, "Load Position", UDim2.new(0, 140, 0, 80))
 local rejoinBtn = makeBtn(pageAdmin, "Rejoin", UDim2.new(0, 0, 0, 120), UDim2.new(0, 130, 0, 30), Color3.fromRGB(140, 40, 40))
 local hopBtn = makeBtn(pageAdmin, "Server Hop", UDim2.new(0, 140, 0, 120), UDim2.new(0, 130, 0, 30), Color3.fromRGB(90, 40, 100))
 
--- ========== VISUAL ==========
+-- VISUAL
 local fbBtn = makeBtn(pageVisual, "Fullbright: OFF", UDim2.new(0, 0, 0, 0))
 local fogBtn = makeBtn(pageVisual, "No Fog: OFF", UDim2.new(0, 140, 0, 0))
 local espBtn = makeBtn(pageVisual, "ESP: OFF", UDim2.new(0, 0, 0, 40))
@@ -273,13 +267,14 @@ local fovBox = makeBox(pageVisual, "70", UDim2.new(0, 140, 0, 42))
 makeLabel(pageVisual, "FOV", UDim2.new(0, 140, 0, 28))
 local fovBtn = makeBtn(pageVisual, "Aplicar FOV", UDim2.new(0, 210, 0, 40), UDim2.new(0, 100, 0, 30), Color3.fromRGB(140, 40, 40))
 
--- ========== EXTRA ==========
+-- EXTRA (com AutoClick)
 local spinBtn = makeBtn(pageExtra, "Spin: OFF", UDim2.new(0, 0, 0, 0))
 local afkBtn = makeBtn(pageExtra, "Anti AFK: OFF", UDim2.new(0, 140, 0, 0))
-local fpsBtn = makeBtn(pageExtra, "FPS Boost", UDim2.new(0, 0, 0, 40), UDim2.new(0, 130, 0, 30), Color3.fromRGB(90, 40, 100))
-local copyBtn = makeBtn(pageExtra, "Copy Position", UDim2.new(0, 140, 0, 40))
+local autoClickBtn = makeBtn(pageExtra, "AutoClick: OFF", UDim2.new(0, 0, 0, 40))
+local fpsBtn = makeBtn(pageExtra, "FPS Boost", UDim2.new(0, 140, 0, 40), UDim2.new(0, 130, 0, 30), Color3.fromRGB(90, 40, 100))
+local copyBtn = makeBtn(pageExtra, "Copy Position", UDim2.new(0, 0, 0, 80))
 
--- Botão flutuante (também arrastável)
+-- Botão flutuante
 local openBtn = Instance.new("TextButton")
 openBtn.Size = UDim2.new(0, 48, 0, 48)
 openBtn.Position = UDim2.new(0, 15, 0.5, -24)
@@ -291,11 +286,10 @@ openBtn.Font = Enum.Font.GothamBold
 openBtn.TextSize = 20
 openBtn.Visible = false
 openBtn.Active = true
-openBtn.Draggable = true          -- << arrastável também
+openBtn.Draggable = true
 openBtn.Parent = gui
 Instance.new("UICorner", openBtn).CornerRadius = UDim.new(1, 0)
 
--- Botões de subir/descer do Fly
 local upBtn = Instance.new("TextButton")
 upBtn.Size = UDim2.new(0, 50, 0, 50)
 upBtn.Position = UDim2.new(1, -65, 0.5, -60)
@@ -323,7 +317,7 @@ downBtn.Parent = gui
 Instance.new("UICorner", downBtn).CornerRadius = UDim.new(0, 10)
 
 -- ======================
--- LÓGICA DAS FUNÇÕES
+-- FUNÇÕES
 -- ======================
 player.CharacterAdded:Connect(function()
 	task.wait(0.4)
@@ -660,6 +654,29 @@ local function toggleAFK()
 	end
 end
 
+-- ========== AUTOCLICK ==========
+local function toggleAutoClick()
+	autoClick = not autoClick
+	autoClickBtn.Text = autoClick and "AutoClick: ON" or "AutoClick: OFF"
+	autoClickBtn.BackgroundColor3 = autoClick and Color3.fromRGB(40, 140, 80) or Color3.fromRGB(42, 26, 36)
+
+	if autoClick then
+		clickConn = RunService.Heartbeat:Connect(function()
+			pcall(function()
+				-- Método 1 (mais compatível)
+				VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+				VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
+			end)
+			task.wait(clickDelay)
+		end)
+	else
+		if clickConn then
+			clickConn:Disconnect()
+			clickConn = nil
+		end
+	end
+end
+
 local function fpsBoost()
 	pcall(function()
 		settings().Rendering.QualityLevel = 1
@@ -721,6 +738,7 @@ espBtn.MouseButton1Click:Connect(toggleESP)
 fovBtn.MouseButton1Click:Connect(applyFOV)
 spinBtn.MouseButton1Click:Connect(toggleSpin)
 afkBtn.MouseButton1Click:Connect(toggleAFK)
+autoClickBtn.MouseButton1Click:Connect(toggleAutoClick)
 fpsBtn.MouseButton1Click:Connect(fpsBoost)
 copyBtn.MouseButton1Click:Connect(copyPos)
 
@@ -751,4 +769,4 @@ task.spawn(function()
 	end
 end)
 
-print("✅ Dragon Admin (Sidebar) carregado!")
+print("✅ Dragon Admin + AutoClick carregado!")
