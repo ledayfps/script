@@ -1,5 +1,5 @@
--- Painel de Utilidades (Fly, Teleport, Speed) - Mobile + PC
--- Com botões de Subir e Descer no Fly
+-- Painel de Utilidades + Voadora
+-- LocalScript → StarterPlayerScripts
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -15,6 +15,7 @@ local FLY_SPEED = 60
 local VERTICAL_SPEED = 50
 local NORMAL_SPEED = 16
 local FAST_SPEED = 50
+local VOADORA_FORCE = 180 -- força da voadora (pode aumentar)
 
 -- Estados
 local flying = false
@@ -36,8 +37,8 @@ screenGui.Parent = player:WaitForChild("PlayerGui")
 -- Frame principal
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 280, 0, 380)
-mainFrame.Position = UDim2.new(0, 15, 0.5, -190)
+mainFrame.Size = UDim2.new(0, 280, 0, 430)
+mainFrame.Position = UDim2.new(0, 15, 0.5, -215)
 mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
 mainFrame.BackgroundTransparency = 0.25
 mainFrame.BorderSizePixel = 0
@@ -73,14 +74,14 @@ titleCorner.Parent = title
 -- Botão Fly
 local flyButton = Instance.new("TextButton")
 flyButton.Name = "FlyButton"
-flyButton.Size = UDim2.new(1, -20, 0, 42)
-flyButton.Position = UDim2.new(0, 10, 0, 55)
+flyButton.Size = UDim2.new(1, -20, 0, 40)
+flyButton.Position = UDim2.new(0, 10, 0, 52)
 flyButton.BackgroundColor3 = Color3.fromRGB(45, 45, 70)
 flyButton.BackgroundTransparency = 0.15
 flyButton.Text = "🕊️ Fly: OFF"
 flyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 flyButton.Font = Enum.Font.GothamMedium
-flyButton.TextSize = 16
+flyButton.TextSize = 15
 flyButton.Parent = mainFrame
 
 local flyCorner = Instance.new("UICorner")
@@ -90,24 +91,41 @@ flyCorner.Parent = flyButton
 -- Botão Speed
 local speedButton = Instance.new("TextButton")
 speedButton.Name = "SpeedButton"
-speedButton.Size = UDim2.new(1, -20, 0, 42)
-speedButton.Position = UDim2.new(0, 10, 0, 107)
+speedButton.Size = UDim2.new(1, -20, 0, 40)
+speedButton.Position = UDim2.new(0, 10, 0, 100)
 speedButton.BackgroundColor3 = Color3.fromRGB(45, 45, 70)
 speedButton.BackgroundTransparency = 0.15
 speedButton.Text = "🏃 Speed: OFF"
 speedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 speedButton.Font = Enum.Font.GothamMedium
-speedButton.TextSize = 16
+speedButton.TextSize = 15
 speedButton.Parent = mainFrame
 
 local speedCorner = Instance.new("UICorner")
 speedCorner.CornerRadius = UDim.new(0, 10)
 speedCorner.Parent = speedButton
 
+-- Botão Voadora
+local voadoraButton = Instance.new("TextButton")
+voadoraButton.Name = "VoadoraButton"
+voadoraButton.Size = UDim2.new(1, -20, 0, 40)
+voadoraButton.Position = UDim2.new(0, 10, 0, 148)
+voadoraButton.BackgroundColor3 = Color3.fromRGB(140, 40, 40)
+voadoraButton.BackgroundTransparency = 0.1
+voadoraButton.Text = "💥 Voadora"
+voadoraButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+voadoraButton.Font = Enum.Font.GothamBold
+voadoraButton.TextSize = 16
+voadoraButton.Parent = mainFrame
+
+local voadoraCorner = Instance.new("UICorner")
+voadoraCorner.CornerRadius = UDim.new(0, 10)
+voadoraCorner.Parent = voadoraButton
+
 -- Título da lista
 local listTitle = Instance.new("TextLabel")
-listTitle.Size = UDim2.new(1, -20, 0, 25)
-listTitle.Position = UDim2.new(0, 10, 0, 160)
+listTitle.Size = UDim2.new(1, -20, 0, 22)
+listTitle.Position = UDim2.new(0, 10, 0, 200)
 listTitle.BackgroundTransparency = 1
 listTitle.Text = "Teleportar para:"
 listTitle.TextColor3 = Color3.fromRGB(200, 200, 230)
@@ -119,8 +137,8 @@ listTitle.Parent = mainFrame
 -- Lista de jogadores
 local playerList = Instance.new("ScrollingFrame")
 playerList.Name = "PlayerList"
-playerList.Size = UDim2.new(1, -20, 0, 155)
-playerList.Position = UDim2.new(0, 10, 0, 190)
+playerList.Size = UDim2.new(1, -20, 0, 150)
+playerList.Position = UDim2.new(0, 10, 0, 225)
 playerList.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
 playerList.BackgroundTransparency = 0.3
 playerList.BorderSizePixel = 0
@@ -175,9 +193,7 @@ openStroke.Color = Color3.fromRGB(120, 120, 200)
 openStroke.Thickness = 1.5
 openStroke.Parent = openButton
 
--- ======================
--- BOTÕES DE SUBIR / DESCER (aparecem só no Fly)
--- ======================
+-- Botões de Subir / Descer
 local upButton = Instance.new("TextButton")
 upButton.Name = "UpButton"
 upButton.Size = UDim2.new(0, 70, 0, 70)
@@ -263,8 +279,6 @@ local function toggleFly()
 		bodyGyro.Parent = rootPart
 
 		humanoid.PlatformStand = true
-
-		-- Mostra os botões de subir/descer
 		upButton.Visible = true
 		downButton.Visible = true
 	else
@@ -274,7 +288,6 @@ local function toggleFly()
 		if bodyVelocity then bodyVelocity:Destroy() bodyVelocity = nil end
 		if bodyGyro then bodyGyro:Destroy() bodyGyro = nil end
 		humanoid.PlatformStand = false
-
 		goingUp = false
 		goingDown = false
 		upButton.Visible = false
@@ -289,12 +302,10 @@ RunService.RenderStepped:Connect(function()
 		local move = humanoid.MoveDirection
 		local velocity = Vector3.zero
 
-		-- Movimento horizontal (joystick / WASD)
 		if move.Magnitude > 0.05 then
 			velocity = move * FLY_SPEED
 		end
 
-		-- Vertical pelos botões
 		if goingUp then
 			velocity = velocity + Vector3.new(0, VERTICAL_SPEED, 0)
 		end
@@ -302,7 +313,6 @@ RunService.RenderStepped:Connect(function()
 			velocity = velocity + Vector3.new(0, -VERTICAL_SPEED, 0)
 		end
 
-		-- Também funciona no teclado (PC)
 		if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
 			velocity = velocity + Vector3.new(0, VERTICAL_SPEED, 0)
 		end
@@ -315,26 +325,14 @@ RunService.RenderStepped:Connect(function()
 	end
 end)
 
--- Botões de subir e descer (segurar)
-upButton.MouseButton1Down:Connect(function()
-	goingUp = true
-end)
-upButton.MouseButton1Up:Connect(function()
-	goingUp = false
-end)
-upButton.MouseLeave:Connect(function()
-	goingUp = false
-end)
+-- Botões subir/descer
+upButton.MouseButton1Down:Connect(function() goingUp = true end)
+upButton.MouseButton1Up:Connect(function() goingUp = false end)
+upButton.MouseLeave:Connect(function() goingUp = false end)
 
-downButton.MouseButton1Down:Connect(function()
-	goingDown = true
-end)
-downButton.MouseButton1Up:Connect(function()
-	goingDown = false
-end)
-downButton.MouseLeave:Connect(function()
-	goingDown = false
-end)
+downButton.MouseButton1Down:Connect(function() goingDown = true end)
+downButton.MouseButton1Up:Connect(function() goingDown = false end)
+downButton.MouseLeave:Connect(function() goingDown = false end)
 
 -- Speed
 local function toggleSpeed()
@@ -351,6 +349,65 @@ local function toggleSpeed()
 		humanoid.WalkSpeed = NORMAL_SPEED
 		speedButton.Text = "🏃 Speed: OFF"
 		speedButton.BackgroundColor3 = Color3.fromRGB(45, 45, 70)
+	end
+end
+
+-- ========== VOADORA ==========
+local function darVoadora()
+	updateCharacter()
+	if not rootPart then return end
+
+	local closestPlayer = nil
+	local closestDistance = 20 -- distância máxima
+
+	for _, plr in ipairs(Players:GetPlayers()) do
+		if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+			local targetRoot = plr.Character.HumanoidRootPart
+			local distance = (rootPart.Position - targetRoot.Position).Magnitude
+
+			if distance < closestDistance then
+				closestDistance = distance
+				closestPlayer = plr
+			end
+		end
+	end
+
+	if closestPlayer and closestPlayer.Character then
+		local targetRoot = closestPlayer.Character:FindFirstChild("HumanoidRootPart")
+		local targetHumanoid = closestPlayer.Character:FindFirstChildOfClass("Humanoid")
+
+		if targetRoot and targetHumanoid then
+			-- Remove qualquer força antiga
+			for _, v in ipairs(targetRoot:GetChildren()) do
+				if v:IsA("BodyVelocity") or v:IsA("BodyForce") then
+					v:Destroy()
+				end
+			end
+
+			-- Cria a força da voadora
+			local bv = Instance.new("BodyVelocity")
+			bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+			bv.Velocity = (rootPart.CFrame.LookVector * VOADORA_FORCE) + Vector3.new(0, VOADORA_FORCE * 0.9, 0)
+			bv.Parent = targetRoot
+
+			-- Remove a força depois de um tempo
+			task.delay(0.6, function()
+				if bv then
+					bv:Destroy()
+				end
+			end)
+
+			-- Efeito visual no botão
+			voadoraButton.Text = "💥 VOADORA!"
+			voadoraButton.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
+			task.wait(0.4)
+			voadoraButton.Text = "💥 Voadora"
+			voadoraButton.BackgroundColor3 = Color3.fromRGB(140, 40, 40)
+		end
+	else
+		voadoraButton.Text = "Ninguém perto"
+		task.wait(0.6)
+		voadoraButton.Text = "💥 Voadora"
 	end
 end
 
@@ -406,6 +463,7 @@ end
 -- ======================
 flyButton.MouseButton1Click:Connect(toggleFly)
 speedButton.MouseButton1Click:Connect(toggleSpeed)
+voadoraButton.MouseButton1Click:Connect(darVoadora)
 
 closeButton.MouseButton1Click:Connect(function()
 	mainFrame.Visible = false
@@ -435,4 +493,4 @@ task.spawn(function()
 	end
 end)
 
-print("✅ Painel carregado! Fly com botões de Subir e Descer")
+print("✅ Painel + Voadora carregado!")
