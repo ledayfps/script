@@ -1,5 +1,5 @@
 -- Painel de Utilidades (Fly, Teleport, Speed) - Mobile + PC
--- LocalScript → StarterPlayerScripts
+-- Com botões de Subir e Descer no Fly
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -12,12 +12,15 @@ local rootPart = character:WaitForChild("HumanoidRootPart")
 
 -- Configurações
 local FLY_SPEED = 60
+local VERTICAL_SPEED = 50
 local NORMAL_SPEED = 16
 local FAST_SPEED = 50
 
 -- Estados
 local flying = false
 local fastRunning = false
+local goingUp = false
+local goingDown = false
 local bodyVelocity = nil
 local bodyGyro = nil
 
@@ -30,7 +33,7 @@ screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
--- Frame principal (semi-transparente)
+-- Frame principal
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.Size = UDim2.new(0, 280, 0, 380)
@@ -149,7 +152,7 @@ local closeCorner = Instance.new("UICorner")
 closeCorner.CornerRadius = UDim.new(0, 8)
 closeCorner.Parent = closeButton
 
--- Botão flutuante para reabrir no mobile
+-- Botão flutuante para reabrir
 local openButton = Instance.new("TextButton")
 openButton.Name = "OpenButton"
 openButton.Size = UDim2.new(0, 55, 0, 55)
@@ -173,6 +176,43 @@ openStroke.Thickness = 1.5
 openStroke.Parent = openButton
 
 -- ======================
+-- BOTÕES DE SUBIR / DESCER (aparecem só no Fly)
+-- ======================
+local upButton = Instance.new("TextButton")
+upButton.Name = "UpButton"
+upButton.Size = UDim2.new(0, 70, 0, 70)
+upButton.Position = UDim2.new(1, -90, 0.5, -90)
+upButton.BackgroundColor3 = Color3.fromRGB(40, 120, 70)
+upButton.BackgroundTransparency = 0.15
+upButton.Text = "↑\nSubir"
+upButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+upButton.Font = Enum.Font.GothamBold
+upButton.TextSize = 16
+upButton.Visible = false
+upButton.Parent = screenGui
+
+local upCorner = Instance.new("UICorner")
+upCorner.CornerRadius = UDim.new(0, 14)
+upCorner.Parent = upButton
+
+local downButton = Instance.new("TextButton")
+downButton.Name = "DownButton"
+downButton.Size = UDim2.new(0, 70, 0, 70)
+downButton.Position = UDim2.new(1, -90, 0.5, 20)
+downButton.BackgroundColor3 = Color3.fromRGB(140, 50, 50)
+downButton.BackgroundTransparency = 0.15
+downButton.Text = "↓\nDescer"
+downButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+downButton.Font = Enum.Font.GothamBold
+downButton.TextSize = 16
+downButton.Visible = false
+downButton.Parent = screenGui
+
+local downCorner = Instance.new("UICorner")
+downCorner.CornerRadius = UDim.new(0, 14)
+downCorner.Parent = downButton
+
+-- ======================
 -- FUNÇÕES
 -- ======================
 
@@ -189,15 +229,19 @@ player.CharacterAdded:Connect(function()
 	updateCharacter()
 	flying = false
 	fastRunning = false
+	goingUp = false
+	goingDown = false
 	if bodyVelocity then bodyVelocity:Destroy() bodyVelocity = nil end
 	if bodyGyro then bodyGyro:Destroy() bodyGyro = nil end
 	flyButton.Text = "🕊️ Fly: OFF"
 	flyButton.BackgroundColor3 = Color3.fromRGB(45, 45, 70)
 	speedButton.Text = "🏃 Speed: OFF"
 	speedButton.BackgroundColor3 = Color3.fromRGB(45, 45, 70)
+	upButton.Visible = false
+	downButton.Visible = false
 end)
 
--- Fly (funciona no mobile + PC)
+-- Fly
 local function toggleFly()
 	updateCharacter()
 	if not character or not rootPart or not humanoid then return end
@@ -219,6 +263,10 @@ local function toggleFly()
 		bodyGyro.Parent = rootPart
 
 		humanoid.PlatformStand = true
+
+		-- Mostra os botões de subir/descer
+		upButton.Visible = true
+		downButton.Visible = true
 	else
 		flyButton.Text = "🕊️ Fly: OFF"
 		flyButton.BackgroundColor3 = Color3.fromRGB(45, 45, 70)
@@ -226,32 +274,66 @@ local function toggleFly()
 		if bodyVelocity then bodyVelocity:Destroy() bodyVelocity = nil end
 		if bodyGyro then bodyGyro:Destroy() bodyGyro = nil end
 		humanoid.PlatformStand = false
+
+		goingUp = false
+		goingDown = false
+		upButton.Visible = false
+		downButton.Visible = false
 	end
 end
 
--- Controle do Fly (Mobile + PC)
+-- Controle do Fly
 RunService.RenderStepped:Connect(function()
 	if flying and bodyVelocity and bodyGyro and rootPart and humanoid then
 		local cam = workspace.CurrentCamera
 		local move = humanoid.MoveDirection
 		local velocity = Vector3.zero
 
-		-- Movimento principal (funciona no joystick do mobile e WASD)
+		-- Movimento horizontal (joystick / WASD)
 		if move.Magnitude > 0.05 then
 			velocity = move * FLY_SPEED
 		end
 
-		-- Subir / Descer (PC)
+		-- Vertical pelos botões
+		if goingUp then
+			velocity = velocity + Vector3.new(0, VERTICAL_SPEED, 0)
+		end
+		if goingDown then
+			velocity = velocity + Vector3.new(0, -VERTICAL_SPEED, 0)
+		end
+
+		-- Também funciona no teclado (PC)
 		if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-			velocity = velocity + Vector3.new(0, FLY_SPEED, 0)
+			velocity = velocity + Vector3.new(0, VERTICAL_SPEED, 0)
 		end
 		if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) or UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-			velocity = velocity + Vector3.new(0, -FLY_SPEED, 0)
+			velocity = velocity + Vector3.new(0, -VERTICAL_SPEED, 0)
 		end
 
 		bodyVelocity.Velocity = velocity
 		bodyGyro.CFrame = CFrame.new(rootPart.Position, rootPart.Position + cam.CFrame.LookVector)
 	end
+end)
+
+-- Botões de subir e descer (segurar)
+upButton.MouseButton1Down:Connect(function()
+	goingUp = true
+end)
+upButton.MouseButton1Up:Connect(function()
+	goingUp = false
+end)
+upButton.MouseLeave:Connect(function()
+	goingUp = false
+end)
+
+downButton.MouseButton1Down:Connect(function()
+	goingDown = true
+end)
+downButton.MouseButton1Up:Connect(function()
+	goingDown = false
+end)
+downButton.MouseLeave:Connect(function()
+	goingDown = false
 end)
 
 -- Speed
@@ -325,19 +407,16 @@ end
 flyButton.MouseButton1Click:Connect(toggleFly)
 speedButton.MouseButton1Click:Connect(toggleSpeed)
 
--- Fechar painel
 closeButton.MouseButton1Click:Connect(function()
 	mainFrame.Visible = false
 	openButton.Visible = true
 end)
 
--- Reabrir painel (mobile)
 openButton.MouseButton1Click:Connect(function()
 	mainFrame.Visible = true
 	openButton.Visible = false
 end)
 
--- Atalho teclado (PC)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if gameProcessed then return end
 	if input.KeyCode == Enum.KeyCode.P then
@@ -356,4 +435,4 @@ task.spawn(function()
 	end
 end)
 
-print("✅ Painel carregado! (Mobile + PC)")
+print("✅ Painel carregado! Fly com botões de Subir e Descer")
