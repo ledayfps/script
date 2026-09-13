@@ -1,5 +1,5 @@
 --[[
-	DRAGON ADMIN - Sidebar + AutoClick + Fling
+	DRAGON ADMIN - Completo + Fling Limpo
 ]]
 
 local Players = game:GetService("Players")
@@ -249,7 +249,7 @@ local listLayout = Instance.new("UIListLayout")
 listLayout.Padding = UDim.new(0, 6)
 listLayout.Parent = list
 
--- ADMIN (com Fling)
+-- ADMIN
 local invisBtn = makeBtn(pageAdmin, "Invisível: OFF", UDim2.new(0, 0, 0, 0))
 local godBtn = makeBtn(pageAdmin, "GodMode: OFF", UDim2.new(0, 140, 0, 0))
 local clickBtn = makeBtn(pageAdmin, "Click TP: OFF", UDim2.new(0, 0, 0, 40))
@@ -492,7 +492,7 @@ mouse.Button1Down:Connect(function()
 	end
 end)
 
--- ========== FLING ==========
+-- ========== FLING LIMPO ==========
 local function toggleFling()
 	flinging = not flinging
 	flingBtn.Text = flinging and "Fling: ON" or "Fling: OFF"
@@ -502,7 +502,7 @@ local function toggleFling()
 		pcall(function()
 			StarterGui:SetCore("SendNotification", {
 				Title = "Dragon Fling",
-				Text = "Encoste nas pessoas!",
+				Text = "Ande normal e encoste nas pessoas",
 				Duration = 3
 			})
 		end)
@@ -510,40 +510,32 @@ local function toggleFling()
 		task.spawn(function()
 			while flinging do
 				updateChar()
-				if rootPart and humanoid then
-					humanoid.PlatformStand = true
+				if rootPart then
+					for _, plr in ipairs(Players:GetPlayers()) do
+						if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+							local targetRoot = plr.Character.HumanoidRootPart
+							local distance = (rootPart.Position - targetRoot.Position).Magnitude
 
-					local ang = Instance.new("BodyAngularVelocity")
-					ang.Name = "DragonFling"
-					ang.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
-					ang.AngularVelocity = Vector3.new(
-						math.random(-12000, 12000),
-						math.random(-12000, 12000),
-						math.random(-12000, 12000)
-					)
-					ang.Parent = rootPart
+							if distance < 6.5 then
+								local direction = (targetRoot.Position - rootPart.Position).Unit
 
-					rootPart.AssemblyLinearVelocity = Vector3.new(
-						math.random(-350, 350),
-						math.random(250, 450),
-						math.random(-350, 350)
-					)
+								-- Empurrão limpo e forte
+								rootPart.AssemblyLinearVelocity = direction * 200 + Vector3.new(0, 130, 0)
 
-					task.wait(0.13)
-					if ang then ang:Destroy() end
-					humanoid.PlatformStand = false
+								local bv = Instance.new("BodyVelocity")
+								bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+								bv.Velocity = direction * 240 + Vector3.new(0, 150, 0)
+								bv.Parent = rootPart
+
+								task.wait(0.09)
+								bv:Destroy()
+							end
+						end
+					end
 				end
-				task.wait(0.04)
+				task.wait(0.03)
 			end
 		end)
-	else
-		if rootPart then
-			for _, v in ipairs(rootPart:GetChildren()) do
-				if v.Name == "DragonFling" then
-					v:Destroy()
-				end
-			end
-		end
 	end
 end
 
@@ -827,4 +819,4 @@ task.spawn(function()
 	end
 end)
 
-print("✅ Dragon Admin + Fling carregado!")
+print("✅ Dragon Admin + Fling Limpo carregado!")
