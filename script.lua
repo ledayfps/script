@@ -1,6 +1,4 @@
--- Painel de Utilidades + Voadora (método mais forte)
--- LocalScript → StarterPlayerScripts
-
+-- Painel + Voadora (método Spin Fling - o que mais funciona)
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -15,7 +13,6 @@ local FLY_SPEED = 60
 local VERTICAL_SPEED = 50
 local NORMAL_SPEED = 16
 local FAST_SPEED = 50
-local VOADORA_FORCE = 250 -- força bem forte
 
 -- Estados
 local flying = false
@@ -24,9 +21,10 @@ local goingUp = false
 local goingDown = false
 local bodyVelocity = nil
 local bodyGyro = nil
+local flinging = false
 
 -- ======================
--- CRIAR GUI
+-- GUI
 -- ======================
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "UtilityPanel"
@@ -70,7 +68,6 @@ titleCorner.CornerRadius = UDim.new(0, 14)
 titleCorner.Parent = title
 
 local flyButton = Instance.new("TextButton")
-flyButton.Name = "FlyButton"
 flyButton.Size = UDim2.new(1, -20, 0, 40)
 flyButton.Position = UDim2.new(0, 10, 0, 52)
 flyButton.BackgroundColor3 = Color3.fromRGB(45, 45, 70)
@@ -80,13 +77,9 @@ flyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 flyButton.Font = Enum.Font.GothamMedium
 flyButton.TextSize = 15
 flyButton.Parent = mainFrame
-
-local flyCorner = Instance.new("UICorner")
-flyCorner.CornerRadius = UDim.new(0, 10)
-flyCorner.Parent = flyButton
+Instance.new("UICorner", flyButton).CornerRadius = UDim.new(0, 10)
 
 local speedButton = Instance.new("TextButton")
-speedButton.Name = "SpeedButton"
 speedButton.Size = UDim2.new(1, -20, 0, 40)
 speedButton.Position = UDim2.new(0, 10, 0, 100)
 speedButton.BackgroundColor3 = Color3.fromRGB(45, 45, 70)
@@ -96,13 +89,9 @@ speedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 speedButton.Font = Enum.Font.GothamMedium
 speedButton.TextSize = 15
 speedButton.Parent = mainFrame
-
-local speedCorner = Instance.new("UICorner")
-speedCorner.CornerRadius = UDim.new(0, 10)
-speedCorner.Parent = speedButton
+Instance.new("UICorner", speedButton).CornerRadius = UDim.new(0, 10)
 
 local voadoraButton = Instance.new("TextButton")
-voadoraButton.Name = "VoadoraButton"
 voadoraButton.Size = UDim2.new(1, -20, 0, 40)
 voadoraButton.Position = UDim2.new(0, 10, 0, 148)
 voadoraButton.BackgroundColor3 = Color3.fromRGB(140, 40, 40)
@@ -112,10 +101,7 @@ voadoraButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 voadoraButton.Font = Enum.Font.GothamBold
 voadoraButton.TextSize = 16
 voadoraButton.Parent = mainFrame
-
-local voadoraCorner = Instance.new("UICorner")
-voadoraCorner.CornerRadius = UDim.new(0, 10)
-voadoraCorner.Parent = voadoraButton
+Instance.new("UICorner", voadoraButton).CornerRadius = UDim.new(0, 10)
 
 local listTitle = Instance.new("TextLabel")
 listTitle.Size = UDim2.new(1, -20, 0, 22)
@@ -129,7 +115,6 @@ listTitle.TextXAlignment = Enum.TextXAlignment.Left
 listTitle.Parent = mainFrame
 
 local playerList = Instance.new("ScrollingFrame")
-playerList.Name = "PlayerList"
 playerList.Size = UDim2.new(1, -20, 0, 150)
 playerList.Position = UDim2.new(0, 10, 0, 225)
 playerList.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
@@ -138,10 +123,7 @@ playerList.BorderSizePixel = 0
 playerList.ScrollBarThickness = 5
 playerList.CanvasSize = UDim2.new(0, 0, 0, 0)
 playerList.Parent = mainFrame
-
-local listCorner = Instance.new("UICorner")
-listCorner.CornerRadius = UDim.new(0, 10)
-listCorner.Parent = playerList
+Instance.new("UICorner", playerList).CornerRadius = UDim.new(0, 10)
 
 local listLayout = Instance.new("UIListLayout")
 listLayout.Padding = UDim.new(0, 6)
@@ -157,13 +139,9 @@ closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 closeButton.Font = Enum.Font.GothamBold
 closeButton.TextSize = 16
 closeButton.Parent = mainFrame
-
-local closeCorner = Instance.new("UICorner")
-closeCorner.CornerRadius = UDim.new(0, 8)
-closeCorner.Parent = closeButton
+Instance.new("UICorner", closeButton).CornerRadius = UDim.new(0, 8)
 
 local openButton = Instance.new("TextButton")
-openButton.Name = "OpenButton"
 openButton.Size = UDim2.new(0, 55, 0, 55)
 openButton.Position = UDim2.new(0, 15, 0.5, -27)
 openButton.BackgroundColor3 = Color3.fromRGB(40, 40, 70)
@@ -174,18 +152,9 @@ openButton.Font = Enum.Font.GothamBold
 openButton.TextSize = 24
 openButton.Visible = false
 openButton.Parent = screenGui
-
-local openCorner = Instance.new("UICorner")
-openCorner.CornerRadius = UDim.new(1, 0)
-openCorner.Parent = openButton
-
-local openStroke = Instance.new("UIStroke")
-openStroke.Color = Color3.fromRGB(120, 120, 200)
-openStroke.Thickness = 1.5
-openStroke.Parent = openButton
+Instance.new("UICorner", openButton).CornerRadius = UDim.new(1, 0)
 
 local upButton = Instance.new("TextButton")
-upButton.Name = "UpButton"
 upButton.Size = UDim2.new(0, 70, 0, 70)
 upButton.Position = UDim2.new(1, -90, 0.5, -90)
 upButton.BackgroundColor3 = Color3.fromRGB(40, 120, 70)
@@ -196,13 +165,9 @@ upButton.Font = Enum.Font.GothamBold
 upButton.TextSize = 16
 upButton.Visible = false
 upButton.Parent = screenGui
-
-local upCorner = Instance.new("UICorner")
-upCorner.CornerRadius = UDim.new(0, 14)
-upCorner.Parent = upButton
+Instance.new("UICorner", upButton).CornerRadius = UDim.new(0, 14)
 
 local downButton = Instance.new("TextButton")
-downButton.Name = "DownButton"
 downButton.Size = UDim2.new(0, 70, 0, 70)
 downButton.Position = UDim2.new(1, -90, 0.5, 20)
 downButton.BackgroundColor3 = Color3.fromRGB(140, 50, 50)
@@ -213,15 +178,11 @@ downButton.Font = Enum.Font.GothamBold
 downButton.TextSize = 16
 downButton.Visible = false
 downButton.Parent = screenGui
-
-local downCorner = Instance.new("UICorner")
-downCorner.CornerRadius = UDim.new(0, 14)
-downCorner.Parent = downButton
+Instance.new("UICorner", downButton).CornerRadius = UDim.new(0, 14)
 
 -- ======================
 -- FUNÇÕES
 -- ======================
-
 local function updateCharacter()
 	character = player.Character
 	if character then
@@ -237,6 +198,7 @@ player.CharacterAdded:Connect(function()
 	fastRunning = false
 	goingUp = false
 	goingDown = false
+	flinging = false
 	if bodyVelocity then bodyVelocity:Destroy() bodyVelocity = nil end
 	if bodyGyro then bodyGyro:Destroy() bodyGyro = nil end
 	flyButton.Text = "🕊️ Fly: OFF"
@@ -293,14 +255,8 @@ RunService.RenderStepped:Connect(function()
 		if move.Magnitude > 0.05 then
 			velocity = move * FLY_SPEED
 		end
-
-		if goingUp then
-			velocity = velocity + Vector3.new(0, VERTICAL_SPEED, 0)
-		end
-		if goingDown then
-			velocity = velocity + Vector3.new(0, -VERTICAL_SPEED, 0)
-		end
-
+		if goingUp then velocity = velocity + Vector3.new(0, VERTICAL_SPEED, 0) end
+		if goingDown then velocity = velocity + Vector3.new(0, -VERTICAL_SPEED, 0) end
 		if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
 			velocity = velocity + Vector3.new(0, VERTICAL_SPEED, 0)
 		end
@@ -316,7 +272,6 @@ end)
 upButton.MouseButton1Down:Connect(function() goingUp = true end)
 upButton.MouseButton1Up:Connect(function() goingUp = false end)
 upButton.MouseLeave:Connect(function() goingUp = false end)
-
 downButton.MouseButton1Down:Connect(function() goingDown = true end)
 downButton.MouseButton1Up:Connect(function() goingDown = false end)
 downButton.MouseLeave:Connect(function() goingDown = false end)
@@ -326,7 +281,6 @@ local function toggleSpeed()
 	if not humanoid then return end
 
 	fastRunning = not fastRunning
-
 	if fastRunning then
 		humanoid.WalkSpeed = FAST_SPEED
 		speedButton.Text = "🏃 Speed: ON"
@@ -338,85 +292,50 @@ local function toggleSpeed()
 	end
 end
 
--- ========== VOADORA FORTE ==========
+-- ========== VOADORA (SPIN FLING) ==========
 local function darVoadora()
+	if flinging then return end
 	updateCharacter()
-	if not rootPart then return end
+	if not rootPart or not humanoid then return end
 
-	local closestPlayer = nil
-	local closestDistance = 25
+	flinging = true
+	voadoraButton.Text = "💥 VOANDO..."
+	voadoraButton.BackgroundColor3 = Color3.fromRGB(220, 20, 20)
 
-	for _, plr in ipairs(Players:GetPlayers()) do
-		if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-			local targetRoot = plr.Character.HumanoidRootPart
-			local distance = (rootPart.Position - targetRoot.Position).Magnitude
+	-- Salva estado atual
+	local oldPlatformStand = humanoid.PlatformStand
+	humanoid.PlatformStand = true
 
-			if distance < closestDistance then
-				closestDistance = distance
-				closestPlayer = plr
-			end
-		end
-	end
+	-- Cria rotação extrema
+	local bav = Instance.new("BodyAngularVelocity")
+	bav.Name = "FlingAngular"
+	bav.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
+	bav.AngularVelocity = Vector3.new(0, 99999, 0) -- gira muito rápido
+	bav.Parent = rootPart
 
-	if closestPlayer and closestPlayer.Character then
-		local targetRoot = closestPlayer.Character:FindFirstChild("HumanoidRootPart")
-		local targetHumanoid = closestPlayer.Character:FindFirstChildOfClass("Humanoid")
+	-- Força para frente + cima
+	local bv = Instance.new("BodyVelocity")
+	bv.Name = "FlingVelocity"
+	bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+	bv.Velocity = rootPart.CFrame.LookVector * 180 + Vector3.new(0, 120, 0)
+	bv.Parent = rootPart
 
-		if targetRoot then
-			-- Método mais agressivo
-			local look = rootPart.CFrame.LookVector
-			local force = look * VOADORA_FORCE + Vector3.new(0, VOADORA_FORCE * 1.1, 0)
+	-- Mantém a força por 0.7 segundos
+	task.wait(0.7)
 
-			-- Tenta várias formas de aplicar força
-			pcall(function()
-				targetRoot.AssemblyLinearVelocity = force
-			end)
+	-- Limpa
+	if bav then bav:Destroy() end
+	if bv then bv:Destroy() end
+	humanoid.PlatformStand = oldPlatformStand
 
-			pcall(function()
-				targetRoot:ApplyImpulse(force * 3)
-			end)
-
-			-- BodyVelocity de reforço
-			local bv = Instance.new("BodyVelocity")
-			bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-			bv.Velocity = force
-			bv.Parent = targetRoot
-
-			-- BodyAngularVelocity pra girar (mais engraçado)
-			local bav = Instance.new("BodyAngularVelocity")
-			bav.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-			bav.AngularVelocity = Vector3.new(0, 20, 0)
-			bav.Parent = targetRoot
-
-			-- Mantém a força por um tempinho
-			task.spawn(function()
-				for i = 1, 8 do
-					pcall(function()
-						targetRoot.AssemblyLinearVelocity = force
-					end)
-					task.wait(0.03)
-				end
-				if bv then bv:Destroy() end
-				if bav then bav:Destroy() end
-			end)
-
-			voadoraButton.Text = "💥 VOADORA!"
-			voadoraButton.BackgroundColor3 = Color3.fromRGB(220, 20, 20)
-			task.wait(0.5)
-			voadoraButton.Text = "💥 Voadora"
-			voadoraButton.BackgroundColor3 = Color3.fromRGB(140, 40, 40)
-		end
-	else
-		voadoraButton.Text = "Ninguém perto"
-		task.wait(0.7)
-		voadoraButton.Text = "💥 Voadora"
-	end
+	flinging = false
+	voadoraButton.Text = "💥 Voadora"
+	voadoraButton.BackgroundColor3 = Color3.fromRGB(140, 40, 40)
 end
 
 local function teleportToPlayer(targetPlayer)
 	updateCharacter()
 	if not rootPart or not targetPlayer.Character then return end
-
 	local targetRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
 	if targetRoot then
 		rootPart.CFrame = targetRoot.CFrame * CFrame.new(0, 0, 4)
@@ -425,9 +344,7 @@ end
 
 local function refreshPlayerList()
 	for _, child in ipairs(playerList:GetChildren()) do
-		if child:IsA("TextButton") then
-			child:Destroy()
-		end
+		if child:IsA("TextButton") then child:Destroy() end
 	end
 
 	local yOffset = 0
@@ -442,25 +359,18 @@ local function refreshPlayerList()
 			btn.Font = Enum.Font.Gotham
 			btn.TextSize = 14
 			btn.Parent = playerList
-
-			local btnCorner = Instance.new("UICorner")
-			btnCorner.CornerRadius = UDim.new(0, 8)
-			btnCorner.Parent = btn
+			Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
 
 			btn.MouseButton1Click:Connect(function()
 				teleportToPlayer(plr)
 			end)
-
 			yOffset = yOffset + 40
 		end
 	end
-
 	playerList.CanvasSize = UDim2.new(0, 0, 0, yOffset)
 end
 
--- ======================
--- CONEXÕES
--- ======================
+-- Conexões
 flyButton.MouseButton1Click:Connect(toggleFly)
 speedButton.MouseButton1Click:Connect(toggleSpeed)
 voadoraButton.MouseButton1Click:Connect(darVoadora)
@@ -493,4 +403,4 @@ task.spawn(function()
 	end
 end)
 
-print("✅ Painel + Voadora Forte carregado!")
+print("✅ Painel + Spin Fling carregado!")
