@@ -1,4 +1,4 @@
--- Painel + Voadora (método Spin Fling - o que mais funciona)
+-- Painel + Voadora (você fica no lugar)
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -43,9 +43,7 @@ mainFrame.Active = true
 mainFrame.Draggable = true
 mainFrame.Parent = screenGui
 
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 14)
-corner.Parent = mainFrame
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 14)
 
 local stroke = Instance.new("UIStroke")
 stroke.Color = Color3.fromRGB(100, 100, 160)
@@ -62,10 +60,7 @@ title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 18
 title.Parent = mainFrame
-
-local titleCorner = Instance.new("UICorner")
-titleCorner.CornerRadius = UDim.new(0, 14)
-titleCorner.Parent = title
+Instance.new("UICorner", title).CornerRadius = UDim.new(0, 14)
 
 local flyButton = Instance.new("TextButton")
 flyButton.Size = UDim2.new(1, -20, 0, 40)
@@ -292,41 +287,71 @@ local function toggleSpeed()
 	end
 end
 
--- ========== VOADORA (SPIN FLING) ==========
+-- ========== VOADORA (você fica no lugar) ==========
 local function darVoadora()
 	if flinging then return end
 	updateCharacter()
 	if not rootPart or not humanoid then return end
 
+	-- Procura o jogador mais perto
+	local closestPlayer = nil
+	local closestDistance = 18
+
+	for _, plr in ipairs(Players:GetPlayers()) do
+		if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+			local dist = (rootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude
+			if dist < closestDistance then
+				closestDistance = dist
+				closestPlayer = plr
+			end
+		end
+	end
+
+	if not closestPlayer then
+		voadoraButton.Text = "Ninguém perto"
+		task.wait(0.6)
+		voadoraButton.Text = "💥 Voadora"
+		return
+	end
+
 	flinging = true
-	voadoraButton.Text = "💥 VOANDO..."
+	voadoraButton.Text = "💥 VOADORA!"
 	voadoraButton.BackgroundColor3 = Color3.fromRGB(220, 20, 20)
 
-	-- Salva estado atual
-	local oldPlatformStand = humanoid.PlatformStand
-	humanoid.PlatformStand = true
+	local targetRoot = closestPlayer.Character.HumanoidRootPart
+	local direction = (targetRoot.Position - rootPart.Position).Unit
 
-	-- Cria rotação extrema
-	local bav = Instance.new("BodyAngularVelocity")
-	bav.Name = "FlingAngular"
-	bav.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
-	bav.AngularVelocity = Vector3.new(0, 99999, 0) -- gira muito rápido
-	bav.Parent = rootPart
+	-- Salva posição atual
+	local originalCFrame = rootPart.CFrame
 
-	-- Força para frente + cima
+	-- Empurrão bem curto e forte
 	local bv = Instance.new("BodyVelocity")
-	bv.Name = "FlingVelocity"
 	bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
-	bv.Velocity = rootPart.CFrame.LookVector * 180 + Vector3.new(0, 120, 0)
+	bv.Velocity = direction * 220 + Vector3.new(0, 90, 0)
 	bv.Parent = rootPart
 
-	-- Mantém a força por 0.7 segundos
-	task.wait(0.7)
+	-- Gira um pouco pra ajudar o empurrão
+	local bav = Instance.new("BodyAngularVelocity")
+	bav.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
+	bav.AngularVelocity = Vector3.new(0, 40, 0)
+	bav.Parent = rootPart
 
-	-- Limpa
-	if bav then bav:Destroy() end
-	if bv then bv:Destroy() end
-	humanoid.PlatformStand = oldPlatformStand
+	-- Espera bem pouco tempo (só o suficiente pra colidir)
+	task.wait(0.12)
+
+	-- Remove as forças
+	bv:Destroy()
+	bav:Destroy()
+
+	-- Zera completamente a velocidade e volta quase pro lugar original
+	rootPart.AssemblyLinearVelocity = Vector3.zero
+	rootPart.AssemblyAngularVelocity = Vector3.zero
+	rootPart.CFrame = originalCFrame
+
+	-- Garante que não continue se movendo
+	task.wait(0.05)
+	rootPart.AssemblyLinearVelocity = Vector3.zero
+	rootPart.AssemblyAngularVelocity = Vector3.zero
 
 	flinging = false
 	voadoraButton.Text = "💥 Voadora"
@@ -403,4 +428,4 @@ task.spawn(function()
 	end
 end)
 
-print("✅ Painel + Spin Fling carregado!")
+print("✅ Painel + Voadora (fica no lugar) carregado!")
