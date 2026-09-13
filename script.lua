@@ -1,5 +1,5 @@
 --[[
-	DRAGON ADMIN - Completo + Fling Limpo
+	DRAGON ADMIN - Sidebar + Click Fling
 ]]
 
 local Players = game:GetService("Players")
@@ -25,19 +25,18 @@ local function updateChar()
 end
 updateChar()
 
--- Valores
 local flySpeed = 60
 local walkSpeed = 16
 local jumpPower = 50
 local savedCFrame = nil
 local clickDelay = 0.05
 
--- Estados
 local flying, noclip, infJump, fullbright, invisible, godmode = false, false, false, false, false, false
-local clickTP, espEnabled, spinEnabled, antiAFK, autoClick, flinging = false, false, false, false, false, false
+local clickTP, espEnabled, spinEnabled, antiAFK, autoClick, clickFling = false, false, false, false, false, false
 local bodyVelocity, bodyGyro = nil, nil
 local goingUp, goingDown = false, false
 local noclipConn, godConn, spinConn, afkConn, clickConn = nil, nil, nil, nil, nil
+local isFlinging = false
 
 -- ======================
 -- GUI
@@ -88,7 +87,6 @@ closeBtn.TextSize = 13
 closeBtn.Parent = main
 Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 6)
 
--- SIDEBAR
 local sidebar = Instance.new("Frame")
 sidebar.Size = UDim2.new(0, 110, 1, -36)
 sidebar.Position = UDim2.new(0, 6, 0, 34)
@@ -131,7 +129,6 @@ local btnExtra    = createSideBtn("Extra")
 btnMain.BackgroundColor3 = Color3.fromRGB(150, 45, 45)
 btnMain.TextColor3 = Color3.fromRGB(255, 255, 255)
 
--- CONTEÚDO
 local content = Instance.new("Frame")
 content.Size = UDim2.new(1, -128, 1, -42)
 content.Position = UDim2.new(0, 122, 0, 36)
@@ -176,7 +173,6 @@ btnAdmin.MouseButton1Click:Connect(function() switch(pageAdmin, btnAdmin) end)
 btnVisual.MouseButton1Click:Connect(function() switch(pageVisual, btnVisual) end)
 btnExtra.MouseButton1Click:Connect(function() switch(pageExtra, btnExtra) end)
 
--- Helpers
 local function makeBtn(parent, text, pos, size, color)
 	local b = Instance.new("TextButton")
 	b.Size = size or UDim2.new(0, 130, 0, 30)
@@ -253,7 +249,7 @@ listLayout.Parent = list
 local invisBtn = makeBtn(pageAdmin, "Invisível: OFF", UDim2.new(0, 0, 0, 0))
 local godBtn = makeBtn(pageAdmin, "GodMode: OFF", UDim2.new(0, 140, 0, 0))
 local clickBtn = makeBtn(pageAdmin, "Click TP: OFF", UDim2.new(0, 0, 0, 40))
-local flingBtn = makeBtn(pageAdmin, "Fling: OFF", UDim2.new(0, 140, 0, 40), UDim2.new(0, 130, 0, 30), Color3.fromRGB(160, 40, 40))
+local flingBtn = makeBtn(pageAdmin, "Click Fling: OFF", UDim2.new(0, 140, 0, 40), UDim2.new(0, 130, 0, 30), Color3.fromRGB(160, 40, 40))
 local resetBtn = makeBtn(pageAdmin, "Reset Char", UDim2.new(0, 0, 0, 80), UDim2.new(0, 130, 0, 30), Color3.fromRGB(140, 40, 40))
 local saveBtn = makeBtn(pageAdmin, "Save Position", UDim2.new(0, 140, 0, 80))
 local loadBtn = makeBtn(pageAdmin, "Load Position", UDim2.new(0, 0, 0, 120))
@@ -275,7 +271,6 @@ local autoClickBtn = makeBtn(pageExtra, "AutoClick: OFF", UDim2.new(0, 0, 0, 40)
 local fpsBtn = makeBtn(pageExtra, "FPS Boost", UDim2.new(0, 140, 0, 40), UDim2.new(0, 130, 0, 30), Color3.fromRGB(90, 40, 100))
 local copyBtn = makeBtn(pageExtra, "Copy Position", UDim2.new(0, 0, 0, 80))
 
--- Botão flutuante
 local openBtn = Instance.new("TextButton")
 openBtn.Size = UDim2.new(0, 48, 0, 48)
 openBtn.Position = UDim2.new(0, 15, 0.5, -24)
@@ -324,13 +319,11 @@ player.CharacterAdded:Connect(function()
 	task.wait(0.4)
 	updateChar()
 	flying = false
-	flinging = false
+	isFlinging = false
 	if bodyVelocity then bodyVelocity:Destroy() bodyVelocity = nil end
 	if bodyGyro then bodyGyro:Destroy() bodyGyro = nil end
 	flyBtn.Text = "🕊️ Fly: OFF"
 	flyBtn.BackgroundColor3 = Color3.fromRGB(42, 26, 36)
-	flingBtn.Text = "Fling: OFF"
-	flingBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 40)
 	upBtn.Visible = false
 	downBtn.Visible = false
 	if humanoid then
@@ -484,7 +477,7 @@ local function toggleClickTP()
 end
 
 mouse.Button1Down:Connect(function()
-	if clickTP and rootPart then
+	if clickTP and rootPart and not clickFling then
 		local hit = mouse.Hit
 		if hit then
 			rootPart.CFrame = CFrame.new(hit.Position + Vector3.new(0, 3, 0))
@@ -492,52 +485,103 @@ mouse.Button1Down:Connect(function()
 	end
 end)
 
--- ========== FLING LIMPO ==========
-local function toggleFling()
-	flinging = not flinging
-	flingBtn.Text = flinging and "Fling: ON" or "Fling: OFF"
-	flingBtn.BackgroundColor3 = flinging and Color3.fromRGB(40, 140, 80) or Color3.fromRGB(160, 40, 40)
+-- ========== CLICK FLING ==========
+local SPIN_SPEED = 150000
+local STRIKE_DURATION = 0.3
 
-	if flinging then
-		pcall(function()
-			StarterGui:SetCore("SendNotification", {
-				Title = "Dragon Fling",
-				Text = "Ande normal e encoste nas pessoas",
-				Duration = 3
-			})
-		end)
-
-		task.spawn(function()
-			while flinging do
-				updateChar()
-				if rootPart then
-					for _, plr in ipairs(Players:GetPlayers()) do
-						if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-							local targetRoot = plr.Character.HumanoidRootPart
-							local distance = (rootPart.Position - targetRoot.Position).Magnitude
-
-							if distance < 6.5 then
-								local direction = (targetRoot.Position - rootPart.Position).Unit
-
-								-- Empurrão limpo e forte
-								rootPart.AssemblyLinearVelocity = direction * 200 + Vector3.new(0, 130, 0)
-
-								local bv = Instance.new("BodyVelocity")
-								bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
-								bv.Velocity = direction * 240 + Vector3.new(0, 150, 0)
-								bv.Parent = rootPart
-
-								task.wait(0.09)
-								bv:Destroy()
-							end
-						end
-					end
-				end
-				task.wait(0.03)
-			end
-		end)
+local function getFlingTarget()
+	local target = mouse.Target
+	if target and target.Parent then
+		local char = target.Parent:IsA("Model") and target.Parent or target.Parent.Parent
+		local root = char and char:FindFirstChild("HumanoidRootPart")
+		if root and char ~= player.Character then
+			return root
+		end
 	end
+	return nil
 end
+
+local function startClickFling()
+	if not clickFling or isFlinging then return end
+	updateChar()
+
+	local char = player.Character
+	local root = char and char:FindFirstChild("HumanoidRootPart")
+	local hum = char and char:FindFirstChildOfClass("Humanoid")
+	local target = getFlingTarget()
+	if not root or not target then return end
+
+	isFlinging = true
+	local originalLocation = root.CFrame
+	local originalCamCFrame = camera.CFrame
+
+	camera.CameraType = Enum.CameraType.Scriptable
+	camera.CFrame = originalCamCFrame
+
+	for _, part in ipairs(char:GetDescendants()) do
+		if part:IsA("BasePart") then
+			part.CanCollide = false
+			pcall(function()
+				part.CustomPhysicalProperties = PhysicalProperties.new(100, 0, 0, 0, 0)
+			end)
+		end
+	end
+	root.CanCollide = true
+
+	task.spawn(function()
+		local startTime = os.clock()
+		while os.clock() - startTime < STRIKE_DURATION do
+			RunService.Heartbeat:Wait()
+			if not target or not target.Parent then break end
+			root.CFrame = target.CFrame
+			root.RotVelocity = Vector3.new(0, SPIN_SPEED, 0)
+			root.Velocity = Vector3.new(30, 0, 30)
+		end
+
+		root.Velocity = Vector3.zero
+		root.RotVelocity = Vector3.zero
+		root.AssemblyLinearVelocity = Vector3.zero
+		root.AssemblyAngularVelocity = Vector3.zero
+		root.CFrame = originalLocation + Vector3.new(0, 2, 0)
+
+		camera.CameraType = Enum.CameraType.Custom
+
+		for _, v in ipairs(char:GetDescendants()) do
+			if v:IsA("BasePart") then
+				v.CanCollide = true
+			end
+		end
+
+		if hum then
+			hum:ChangeState(Enum.HumanoidStateType.GettingUp)
+		end
+
+		task.wait(0.2)
+		isFlinging = false
+	end)
+end
+
+local function toggleClickFling()
+	clickFling = not clickFling
+	flingBtn.Text = clickFling and "Click Fling: ON" or "Click Fling: OFF"
+	flingBtn.BackgroundColor3 = clickFling and Color3.fromRGB(40, 140, 80) or Color3.fromRGB(160, 40, 40)
+
+	pcall(function()
+		StarterGui:SetCore("SendNotification", {
+			Title = "Dragon",
+			Text = clickFling and "Clique no jogador para flingar" or "Click Fling desligado",
+			Duration = 2
+		})
+	end)
+end
+
+UserInputService.InputBegan:Connect(function(input, processed)
+	if processed then return end
+	if not clickFling then return end
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		startClickFling()
+	end
+end)
 
 local function savePos()
 	updateChar()
@@ -776,7 +820,7 @@ sitBtn.MouseButton1Click:Connect(sit)
 invisBtn.MouseButton1Click:Connect(toggleInvis)
 godBtn.MouseButton1Click:Connect(toggleGod)
 clickBtn.MouseButton1Click:Connect(toggleClickTP)
-flingBtn.MouseButton1Click:Connect(toggleFling)
+flingBtn.MouseButton1Click:Connect(toggleClickFling)
 resetBtn.MouseButton1Click:Connect(function() if humanoid then humanoid.Health = 0 end end)
 saveBtn.MouseButton1Click:Connect(savePos)
 loadBtn.MouseButton1Click:Connect(loadPos)
@@ -819,4 +863,4 @@ task.spawn(function()
 	end
 end)
 
-print("✅ Dragon Admin + Fling Limpo carregado!")
+print("✅ Dragon Admin + Click Fling carregado!")
