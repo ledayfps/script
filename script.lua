@@ -1,4 +1,4 @@
--- Painel de Utilidades + Voadora
+-- Painel de Utilidades + Voadora (método mais forte)
 -- LocalScript → StarterPlayerScripts
 
 local Players = game:GetService("Players")
@@ -15,7 +15,7 @@ local FLY_SPEED = 60
 local VERTICAL_SPEED = 50
 local NORMAL_SPEED = 16
 local FAST_SPEED = 50
-local VOADORA_FORCE = 180
+local VOADORA_FORCE = 250 -- força bem forte
 
 -- Estados
 local flying = false
@@ -34,7 +34,6 @@ screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
--- Frame principal
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.Size = UDim2.new(0, 280, 0, 430)
@@ -56,7 +55,6 @@ stroke.Thickness = 1.5
 stroke.Transparency = 0.3
 stroke.Parent = mainFrame
 
--- Título
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0, 42)
 title.BackgroundColor3 = Color3.fromRGB(35, 35, 55)
@@ -71,7 +69,6 @@ local titleCorner = Instance.new("UICorner")
 titleCorner.CornerRadius = UDim.new(0, 14)
 titleCorner.Parent = title
 
--- Botão Fly
 local flyButton = Instance.new("TextButton")
 flyButton.Name = "FlyButton"
 flyButton.Size = UDim2.new(1, -20, 0, 40)
@@ -88,7 +85,6 @@ local flyCorner = Instance.new("UICorner")
 flyCorner.CornerRadius = UDim.new(0, 10)
 flyCorner.Parent = flyButton
 
--- Botão Speed
 local speedButton = Instance.new("TextButton")
 speedButton.Name = "SpeedButton"
 speedButton.Size = UDim2.new(1, -20, 0, 40)
@@ -105,7 +101,6 @@ local speedCorner = Instance.new("UICorner")
 speedCorner.CornerRadius = UDim.new(0, 10)
 speedCorner.Parent = speedButton
 
--- Botão Voadora
 local voadoraButton = Instance.new("TextButton")
 voadoraButton.Name = "VoadoraButton"
 voadoraButton.Size = UDim2.new(1, -20, 0, 40)
@@ -122,7 +117,6 @@ local voadoraCorner = Instance.new("UICorner")
 voadoraCorner.CornerRadius = UDim.new(0, 10)
 voadoraCorner.Parent = voadoraButton
 
--- Título da lista
 local listTitle = Instance.new("TextLabel")
 listTitle.Size = UDim2.new(1, -20, 0, 22)
 listTitle.Position = UDim2.new(0, 10, 0, 200)
@@ -134,7 +128,6 @@ listTitle.TextSize = 14
 listTitle.TextXAlignment = Enum.TextXAlignment.Left
 listTitle.Parent = mainFrame
 
--- Lista de jogadores
 local playerList = Instance.new("ScrollingFrame")
 playerList.Name = "PlayerList"
 playerList.Size = UDim2.new(1, -20, 0, 150)
@@ -154,7 +147,6 @@ local listLayout = Instance.new("UIListLayout")
 listLayout.Padding = UDim.new(0, 6)
 listLayout.Parent = playerList
 
--- Botão fechar (X)
 local closeButton = Instance.new("TextButton")
 closeButton.Size = UDim2.new(0, 32, 0, 32)
 closeButton.Position = UDim2.new(1, -38, 0, 5)
@@ -170,7 +162,6 @@ local closeCorner = Instance.new("UICorner")
 closeCorner.CornerRadius = UDim.new(0, 8)
 closeCorner.Parent = closeButton
 
--- Botão flutuante para reabrir
 local openButton = Instance.new("TextButton")
 openButton.Name = "OpenButton"
 openButton.Size = UDim2.new(0, 55, 0, 55)
@@ -193,7 +184,6 @@ openStroke.Color = Color3.fromRGB(120, 120, 200)
 openStroke.Thickness = 1.5
 openStroke.Parent = openButton
 
--- Botões de Subir / Descer
 local upButton = Instance.new("TextButton")
 upButton.Name = "UpButton"
 upButton.Size = UDim2.new(0, 70, 0, 70)
@@ -257,7 +247,6 @@ player.CharacterAdded:Connect(function()
 	downButton.Visible = false
 end)
 
--- Fly
 local function toggleFly()
 	updateCharacter()
 	if not character or not rootPart or not humanoid then return end
@@ -295,7 +284,6 @@ local function toggleFly()
 	end
 end
 
--- Controle do Fly
 RunService.RenderStepped:Connect(function()
 	if flying and bodyVelocity and bodyGyro and rootPart and humanoid then
 		local cam = workspace.CurrentCamera
@@ -325,7 +313,6 @@ RunService.RenderStepped:Connect(function()
 	end
 end)
 
--- Botões subir/descer
 upButton.MouseButton1Down:Connect(function() goingUp = true end)
 upButton.MouseButton1Up:Connect(function() goingUp = false end)
 upButton.MouseLeave:Connect(function() goingUp = false end)
@@ -334,7 +321,6 @@ downButton.MouseButton1Down:Connect(function() goingDown = true end)
 downButton.MouseButton1Up:Connect(function() goingDown = false end)
 downButton.MouseLeave:Connect(function() goingDown = false end)
 
--- Speed
 local function toggleSpeed()
 	updateCharacter()
 	if not humanoid then return end
@@ -352,13 +338,13 @@ local function toggleSpeed()
 	end
 end
 
--- ========== VOADORA ==========
+-- ========== VOADORA FORTE ==========
 local function darVoadora()
 	updateCharacter()
 	if not rootPart then return end
 
 	local closestPlayer = nil
-	local closestDistance = 20
+	local closestDistance = 25
 
 	for _, plr in ipairs(Players:GetPlayers()) do
 		if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
@@ -374,39 +360,59 @@ local function darVoadora()
 
 	if closestPlayer and closestPlayer.Character then
 		local targetRoot = closestPlayer.Character:FindFirstChild("HumanoidRootPart")
+		local targetHumanoid = closestPlayer.Character:FindFirstChildOfClass("Humanoid")
 
 		if targetRoot then
-			for _, v in ipairs(targetRoot:GetChildren()) do
-				if v:IsA("BodyVelocity") or v:IsA("BodyForce") then
-					v:Destroy()
-				end
-			end
+			-- Método mais agressivo
+			local look = rootPart.CFrame.LookVector
+			local force = look * VOADORA_FORCE + Vector3.new(0, VOADORA_FORCE * 1.1, 0)
 
+			-- Tenta várias formas de aplicar força
+			pcall(function()
+				targetRoot.AssemblyLinearVelocity = force
+			end)
+
+			pcall(function()
+				targetRoot:ApplyImpulse(force * 3)
+			end)
+
+			-- BodyVelocity de reforço
 			local bv = Instance.new("BodyVelocity")
-			bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-			bv.Velocity = (rootPart.CFrame.LookVector * VOADORA_FORCE) + Vector3.new(0, VOADORA_FORCE * 0.9, 0)
+			bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+			bv.Velocity = force
 			bv.Parent = targetRoot
 
-			task.delay(0.6, function()
-				if bv then
-					bv:Destroy()
+			-- BodyAngularVelocity pra girar (mais engraçado)
+			local bav = Instance.new("BodyAngularVelocity")
+			bav.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+			bav.AngularVelocity = Vector3.new(0, 20, 0)
+			bav.Parent = targetRoot
+
+			-- Mantém a força por um tempinho
+			task.spawn(function()
+				for i = 1, 8 do
+					pcall(function()
+						targetRoot.AssemblyLinearVelocity = force
+					end)
+					task.wait(0.03)
 				end
+				if bv then bv:Destroy() end
+				if bav then bav:Destroy() end
 			end)
 
 			voadoraButton.Text = "💥 VOADORA!"
-			voadoraButton.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
-			task.wait(0.4)
+			voadoraButton.BackgroundColor3 = Color3.fromRGB(220, 20, 20)
+			task.wait(0.5)
 			voadoraButton.Text = "💥 Voadora"
 			voadoraButton.BackgroundColor3 = Color3.fromRGB(140, 40, 40)
 		end
 	else
 		voadoraButton.Text = "Ninguém perto"
-		task.wait(0.6)
+		task.wait(0.7)
 		voadoraButton.Text = "💥 Voadora"
 	end
 end
 
--- Teleport
 local function teleportToPlayer(targetPlayer)
 	updateCharacter()
 	if not rootPart or not targetPlayer.Character then return end
@@ -417,7 +423,6 @@ local function teleportToPlayer(targetPlayer)
 	end
 end
 
--- Atualizar lista de jogadores
 local function refreshPlayerList()
 	for _, child in ipairs(playerList:GetChildren()) do
 		if child:IsA("TextButton") then
@@ -488,4 +493,4 @@ task.spawn(function()
 	end
 end)
 
-print("✅ Painel + Voadora carregado!")
+print("✅ Painel + Voadora Forte carregado!")
