@@ -15,7 +15,7 @@ local FLY_SPEED = 60
 local VERTICAL_SPEED = 50
 local NORMAL_SPEED = 16
 local FAST_SPEED = 50
-local VOADORA_FORCE = 180 -- força da voadora (pode aumentar)
+local VOADORA_FORCE = 180
 
 -- Estados
 local flying = false
@@ -358,7 +358,7 @@ local function darVoadora()
 	if not rootPart then return end
 
 	local closestPlayer = nil
-	local closestDistance = 20 -- distância máxima
+	local closestDistance = 20
 
 	for _, plr in ipairs(Players:GetPlayers()) do
 		if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
@@ -374,30 +374,25 @@ local function darVoadora()
 
 	if closestPlayer and closestPlayer.Character then
 		local targetRoot = closestPlayer.Character:FindFirstChild("HumanoidRootPart")
-		local targetHumanoid = closestPlayer.Character:FindFirstChildOfClass("Humanoid")
 
-		if targetRoot and targetHumanoid then
-			-- Remove qualquer força antiga
+		if targetRoot then
 			for _, v in ipairs(targetRoot:GetChildren()) do
 				if v:IsA("BodyVelocity") or v:IsA("BodyForce") then
 					v:Destroy()
 				end
 			end
 
-			-- Cria a força da voadora
 			local bv = Instance.new("BodyVelocity")
 			bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
 			bv.Velocity = (rootPart.CFrame.LookVector * VOADORA_FORCE) + Vector3.new(0, VOADORA_FORCE * 0.9, 0)
 			bv.Parent = targetRoot
 
-			-- Remove a força depois de um tempo
 			task.delay(0.6, function()
 				if bv then
 					bv:Destroy()
 				end
 			end)
 
-			-- Efeito visual no botão
 			voadoraButton.Text = "💥 VOADORA!"
 			voadoraButton.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
 			task.wait(0.4)
