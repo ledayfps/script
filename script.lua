@@ -1,5 +1,5 @@
 --[[
-	DRAGON ADMIN - Sidebar + AutoClick
+	DRAGON ADMIN - Sidebar + AutoClick + Fling
 ]]
 
 local Players = game:GetService("Players")
@@ -30,11 +30,11 @@ local flySpeed = 60
 local walkSpeed = 16
 local jumpPower = 50
 local savedCFrame = nil
-local clickDelay = 0.05 -- velocidade do autoclick (quanto menor = mais rápido)
+local clickDelay = 0.05
 
 -- Estados
 local flying, noclip, infJump, fullbright, invisible, godmode = false, false, false, false, false, false
-local clickTP, espEnabled, spinEnabled, antiAFK, autoClick = false, false, false, false, false
+local clickTP, espEnabled, spinEnabled, antiAFK, autoClick, flinging = false, false, false, false, false, false
 local bodyVelocity, bodyGyro = nil, nil
 local goingUp, goingDown = false, false
 local noclipConn, godConn, spinConn, afkConn, clickConn = nil, nil, nil, nil, nil
@@ -50,8 +50,8 @@ gui.Parent = player:WaitForChild("PlayerGui")
 
 local main = Instance.new("Frame")
 main.Name = "Main"
-main.Size = UDim2.new(0, 420, 0, 280)
-main.Position = UDim2.new(0.5, -210, 0.5, -140)
+main.Size = UDim2.new(0, 420, 0, 300)
+main.Position = UDim2.new(0.5, -210, 0.5, -150)
 main.BackgroundColor3 = Color3.fromRGB(12, 10, 18)
 main.BackgroundTransparency = 0.15
 main.BorderSizePixel = 0
@@ -249,15 +249,16 @@ local listLayout = Instance.new("UIListLayout")
 listLayout.Padding = UDim.new(0, 6)
 listLayout.Parent = list
 
--- ADMIN
+-- ADMIN (com Fling)
 local invisBtn = makeBtn(pageAdmin, "Invisível: OFF", UDim2.new(0, 0, 0, 0))
 local godBtn = makeBtn(pageAdmin, "GodMode: OFF", UDim2.new(0, 140, 0, 0))
 local clickBtn = makeBtn(pageAdmin, "Click TP: OFF", UDim2.new(0, 0, 0, 40))
-local resetBtn = makeBtn(pageAdmin, "Reset Char", UDim2.new(0, 140, 0, 40), UDim2.new(0, 130, 0, 30), Color3.fromRGB(140, 40, 40))
-local saveBtn = makeBtn(pageAdmin, "Save Position", UDim2.new(0, 0, 0, 80))
-local loadBtn = makeBtn(pageAdmin, "Load Position", UDim2.new(0, 140, 0, 80))
-local rejoinBtn = makeBtn(pageAdmin, "Rejoin", UDim2.new(0, 0, 0, 120), UDim2.new(0, 130, 0, 30), Color3.fromRGB(140, 40, 40))
-local hopBtn = makeBtn(pageAdmin, "Server Hop", UDim2.new(0, 140, 0, 120), UDim2.new(0, 130, 0, 30), Color3.fromRGB(90, 40, 100))
+local flingBtn = makeBtn(pageAdmin, "Fling: OFF", UDim2.new(0, 140, 0, 40), UDim2.new(0, 130, 0, 30), Color3.fromRGB(160, 40, 40))
+local resetBtn = makeBtn(pageAdmin, "Reset Char", UDim2.new(0, 0, 0, 80), UDim2.new(0, 130, 0, 30), Color3.fromRGB(140, 40, 40))
+local saveBtn = makeBtn(pageAdmin, "Save Position", UDim2.new(0, 140, 0, 80))
+local loadBtn = makeBtn(pageAdmin, "Load Position", UDim2.new(0, 0, 0, 120))
+local rejoinBtn = makeBtn(pageAdmin, "Rejoin", UDim2.new(0, 140, 0, 120), UDim2.new(0, 130, 0, 30), Color3.fromRGB(140, 40, 40))
+local hopBtn = makeBtn(pageAdmin, "Server Hop", UDim2.new(0, 0, 0, 160), UDim2.new(0, 130, 0, 30), Color3.fromRGB(90, 40, 100))
 
 -- VISUAL
 local fbBtn = makeBtn(pageVisual, "Fullbright: OFF", UDim2.new(0, 0, 0, 0))
@@ -267,7 +268,7 @@ local fovBox = makeBox(pageVisual, "70", UDim2.new(0, 140, 0, 42))
 makeLabel(pageVisual, "FOV", UDim2.new(0, 140, 0, 28))
 local fovBtn = makeBtn(pageVisual, "Aplicar FOV", UDim2.new(0, 210, 0, 40), UDim2.new(0, 100, 0, 30), Color3.fromRGB(140, 40, 40))
 
--- EXTRA (com AutoClick)
+-- EXTRA
 local spinBtn = makeBtn(pageExtra, "Spin: OFF", UDim2.new(0, 0, 0, 0))
 local afkBtn = makeBtn(pageExtra, "Anti AFK: OFF", UDim2.new(0, 140, 0, 0))
 local autoClickBtn = makeBtn(pageExtra, "AutoClick: OFF", UDim2.new(0, 0, 0, 40))
@@ -323,10 +324,13 @@ player.CharacterAdded:Connect(function()
 	task.wait(0.4)
 	updateChar()
 	flying = false
+	flinging = false
 	if bodyVelocity then bodyVelocity:Destroy() bodyVelocity = nil end
 	if bodyGyro then bodyGyro:Destroy() bodyGyro = nil end
 	flyBtn.Text = "🕊️ Fly: OFF"
 	flyBtn.BackgroundColor3 = Color3.fromRGB(42, 26, 36)
+	flingBtn.Text = "Fling: OFF"
+	flingBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 40)
 	upBtn.Visible = false
 	downBtn.Visible = false
 	if humanoid then
@@ -487,6 +491,61 @@ mouse.Button1Down:Connect(function()
 		end
 	end
 end)
+
+-- ========== FLING ==========
+local function toggleFling()
+	flinging = not flinging
+	flingBtn.Text = flinging and "Fling: ON" or "Fling: OFF"
+	flingBtn.BackgroundColor3 = flinging and Color3.fromRGB(40, 140, 80) or Color3.fromRGB(160, 40, 40)
+
+	if flinging then
+		pcall(function()
+			StarterGui:SetCore("SendNotification", {
+				Title = "Dragon Fling",
+				Text = "Encoste nas pessoas!",
+				Duration = 3
+			})
+		end)
+
+		task.spawn(function()
+			while flinging do
+				updateChar()
+				if rootPart and humanoid then
+					humanoid.PlatformStand = true
+
+					local ang = Instance.new("BodyAngularVelocity")
+					ang.Name = "DragonFling"
+					ang.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
+					ang.AngularVelocity = Vector3.new(
+						math.random(-12000, 12000),
+						math.random(-12000, 12000),
+						math.random(-12000, 12000)
+					)
+					ang.Parent = rootPart
+
+					rootPart.AssemblyLinearVelocity = Vector3.new(
+						math.random(-350, 350),
+						math.random(250, 450),
+						math.random(-350, 350)
+					)
+
+					task.wait(0.13)
+					if ang then ang:Destroy() end
+					humanoid.PlatformStand = false
+				end
+				task.wait(0.04)
+			end
+		end)
+	else
+		if rootPart then
+			for _, v in ipairs(rootPart:GetChildren()) do
+				if v.Name == "DragonFling" then
+					v:Destroy()
+				end
+			end
+		end
+	end
+end
 
 local function savePos()
 	updateChar()
@@ -654,7 +713,6 @@ local function toggleAFK()
 	end
 end
 
--- ========== AUTOCLICK ==========
 local function toggleAutoClick()
 	autoClick = not autoClick
 	autoClickBtn.Text = autoClick and "AutoClick: ON" or "AutoClick: OFF"
@@ -663,7 +721,6 @@ local function toggleAutoClick()
 	if autoClick then
 		clickConn = RunService.Heartbeat:Connect(function()
 			pcall(function()
-				-- Método 1 (mais compatível)
 				VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
 				VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
 			end)
@@ -727,6 +784,7 @@ sitBtn.MouseButton1Click:Connect(sit)
 invisBtn.MouseButton1Click:Connect(toggleInvis)
 godBtn.MouseButton1Click:Connect(toggleGod)
 clickBtn.MouseButton1Click:Connect(toggleClickTP)
+flingBtn.MouseButton1Click:Connect(toggleFling)
 resetBtn.MouseButton1Click:Connect(function() if humanoid then humanoid.Health = 0 end end)
 saveBtn.MouseButton1Click:Connect(savePos)
 loadBtn.MouseButton1Click:Connect(loadPos)
@@ -769,4 +827,4 @@ task.spawn(function()
 	end
 end)
 
-print("✅ Dragon Admin + AutoClick carregado!")
+print("✅ Dragon Admin + Fling carregado!")
