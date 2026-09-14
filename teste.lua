@@ -26,6 +26,7 @@ local function upd()
 end
 upd()
 
+-- Variáveis de Configuração
 local flySpeed, walkSpeed, jumpPower, savedCF = 60, 16, 50, nil
 local flying, noclip, infJump, fb, invis, god = false, false, false, false, false, false
 local clickTP, espOn, spinOn, afkOn, autoClick, clickFling = false, false, false, false, false, false
@@ -39,6 +40,7 @@ local dropkickAnim = Instance.new("Animation")
 dropkickAnim.AnimationId = "rbxassetid://133566007754001"
 local dropkickTrack = nil
 
+-- Cores da Interface
 local THEME = Color3.fromRGB(175, 52, 72)
 local SIDE = Color3.fromRGB(26, 18, 30)
 local ON = Color3.fromRGB(40, 145, 82)
@@ -50,6 +52,7 @@ local function note(t)
 	end)
 end
 
+-- Interface Gráfica (GUI)
 local gui = Instance.new("ScreenGui")
 gui.Name = "DragonAdmin"
 gui.ResetOnSpawn = false
@@ -113,6 +116,7 @@ side.CanvasSize = UDim2.new(0, 0, 0, 0)
 side.Parent = main
 Instance.new("UICorner", side).CornerRadius = UDim.new(0, 12)
 Instance.new("UIListLayout", side).Padding = UDim.new(0, 7)
+
 local sPad = Instance.new("UIPadding")
 sPad.PaddingTop = UDim.new(0, 8)
 sPad.PaddingBottom = UDim.new(0, 8)
@@ -210,6 +214,7 @@ local function btn(parent, text, color)
 	Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
 	return b
 end
+
 local function box(parent, text)
 	local t = Instance.new("TextBox")
 	t.BackgroundColor3 = Color3.fromRGB(28, 18, 30)
@@ -221,15 +226,17 @@ local function box(parent, text)
 	Instance.new("UICorner", t).CornerRadius = UDim.new(0, 8)
 	return t
 end
+
 local function tog(b, on, a, o)
 	b.Text = on and a or o
 	b.BackgroundColor3 = on and ON or OFF
 end
+
 local function numFrom(boxObj, fallback)
 	return tonumber((boxObj.Text or ""):match("[%d%.]+")) or fallback
 end
 
--- MOVE
+-- BOTOES - MOVE
 local flyBtn = btn(pMove, "Fly: OFF")
 local flyBox = box(pMove, "Fly 60")
 local spdBox = box(pMove, "Walk 16")
@@ -251,7 +258,7 @@ local j50 = btn(pMove, "Jump 50")
 local j120 = btn(pMove, "Jump 120")
 local voidBtn = btn(pMove, "Anti Void: OFF")
 
--- TELEPORT
+-- BOTOES - TELEPORT
 local refBtn = btn(pTP, "Atualizar lista", THEME)
 local tpUp = btn(pTP, "TP Cima +50")
 local tpDown = btn(pTP, "TP Baixo -50")
@@ -263,7 +270,7 @@ list.BackgroundTransparency = 1
 list.Parent = pTP
 Instance.new("UIListLayout", list).Padding = UDim.new(0, 7)
 
--- ADMIN
+-- BOTOES - ADMIN
 local invBtn = btn(pAdm, "Invisivel: OFF")
 local godBtn = btn(pAdm, "GodMode: OFF")
 local ctpBtn = btn(pAdm, "Click TP: OFF")
@@ -277,7 +284,7 @@ local saveSpawn = btn(pAdm, "Respawn no Save")
 local rjBtn = btn(pAdm, "Rejoin", THEME)
 local hpBtn = btn(pAdm, "Server Hop", Color3.fromRGB(95, 42, 115))
 
--- VISUAL
+-- BOTOES - VISUAL
 local fbBtn = btn(pVis, "Fullbright: OFF")
 local fogBtn = btn(pVis, "No Fog: OFF")
 local espBtn = btn(pVis, "ESP: OFF")
@@ -291,7 +298,7 @@ local noBlur = btn(pVis, "No Blur")
 local noShadow = btn(pVis, "No Shadows")
 local resetLight = btn(pVis, "Reset Lighting")
 
--- EXTRA
+-- BOTOES - EXTRA
 local spBtn = btn(pExt, "Spin: OFF")
 local akBtn = btn(pExt, "Anti AFK: OFF")
 local acBtn = btn(pExt, "AutoClick: OFF")
@@ -301,7 +308,7 @@ local hatBtn = btn(pExt, "Rem Hats")
 local zmBtn = btn(pExt, "Zoom Inf")
 local clearFx = btn(pExt, "Limpar efeitos")
 
--- WORLD
+-- BOTOES - WORLD
 local gBox = box(pWld, "196.2")
 local gBtn = btn(pWld, "Set Gravity", THEME)
 local moon = btn(pWld, "Lua 30")
@@ -314,7 +321,7 @@ local bright = btn(pWld, "Bright+")
 local dark = btn(pWld, "Dark")
 local resetWorld = btn(pWld, "Reset World")
 
--- PLAYER
+-- BOTOES - PLAYER
 local copyUser = btn(pPlr, "Copiar User", THEME)
 local copyId = btn(pPlr, "Copiar UserId", THEME)
 local copyJob = btn(pPlr, "Copiar JobId")
@@ -393,6 +400,7 @@ lp.CharacterAdded:Connect(function()
 	end
 end)
 
+-- Sistema de Fly
 local function setFly(state)
 	upd()
 	if not root or not hum then return end
@@ -431,6 +439,7 @@ RS.RenderStepped:Connect(function()
 		bg.CFrame = CFrame.new(root.Position, root.Position + cam.CFrame.LookVector)
 	end
 end)
+
 upB.MouseButton1Down:Connect(function() goingUp = true end)
 upB.MouseButton1Up:Connect(function() goingUp = false end)
 upB.MouseLeave:Connect(function() goingUp = false end)
@@ -446,6 +455,7 @@ local function setSpeed(n)
 		spdBox.Text = "Walk "..n
 	end
 end
+
 local function setJump(n)
 	upd()
 	if hum then
@@ -455,6 +465,7 @@ local function setJump(n)
 		jmpBox.Text = "Jump "..n
 	end
 end
+
 local function setFlySpd(n)
 	flySpeed = n
 	flyBox.Text = "Fly "..n
@@ -510,33 +521,24 @@ UIS.JumpRequest:Connect(function()
 	if infJump and hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
 end)
 
-local function getTarget()
-	local t = mouse.Target
-	if t and t.Parent then
-		local c = t.Parent:IsA("Model") and t.Parent or t.Parent.Parent
-		local r = c and c:FindFirstChild("HumanoidRootPart")
-		if r and c ~= lp.Character then return r end
-	end
-end
-
--- Voadora Fling
+-- VOADORA FLING (Com Proteção contra morte e Direcionamento por Tela)
 local function startFling()
 	if not clickFling or flinging then return end
 	upd()
 	local c, r, h = lp.Character, root, hum
-	local target = getTarget()
-	if not r or not target or not h then return end
+	if not r or not h then return end
 	
 	flinging = true
 	local oldCF = r.CFrame
 	
-	-- Toca Animação de Voadora
+	-- Animação
 	pcall(function()
 		dropkickTrack = h:LoadAnimation(dropkickAnim)
 		dropkickTrack:Play()
 	end)
 	
-	-- Remove colisão do seu personagem com o alvo
+	-- Imunidade temporária contra Morte e Colisão Brutal
+	h:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
 	for _, p in ipairs(c:GetDescendants()) do
 		if p:IsA("BasePart") then
 			p.CanCollide = false
@@ -544,19 +546,23 @@ local function startFling()
 	end
 
 	task.spawn(function()
+		local hitPos = mouse.Hit and mouse.Hit.Position or (r.Position + r.CFrame.LookVector * 20)
+		local targetCF = CFrame.new(r.Position, Vector3.new(hitPos.X, r.Position.Y, hitPos.Z))
+		
 		local t0 = os.clock()
-		-- Aplica velocidade/força (~5000) e empurra contra o alvo
 		while os.clock() - t0 < 0.45 do
 			RS.Heartbeat:Wait()
-			if not target or not target.Parent then break end
 			
-			local targetCF = target.CFrame
-			r.CFrame = targetCF * CFrame.new(0, 0, 0.5)
-			r.AssemblyLinearVelocity = r.CFrame.LookVector * 5000 + Vector3.new(0, 2500, 0)
+			if h and h.Health > 0 then
+				h.Health = h.MaxHealth
+			end
+			
+			r.CFrame = targetCF
+			r.AssemblyLinearVelocity = targetCF.LookVector * 5000 + Vector3.new(0, 2500, 0)
 			r.AssemblyAngularVelocity = Vector3.new(5000, 5000, 5000)
 		end
 		
-		-- Para a força e restaura estado original
+		-- Finaliza Força
 		r.AssemblyLinearVelocity = Vector3.zero
 		r.AssemblyAngularVelocity = Vector3.zero
 		r.CFrame = oldCF + Vector3.new(0, 2, 0)
@@ -568,6 +574,8 @@ local function startFling()
 		for _, p in ipairs(c:GetDescendants()) do
 			if p:IsA("BasePart") then p.CanCollide = true end
 		end
+		
+		h:SetStateEnabled(Enum.HumanoidStateType.Dead, true)
 		h:ChangeState(Enum.HumanoidStateType.GettingUp)
 		
 		task.wait(0.2)
@@ -612,7 +620,7 @@ local function refresh()
 	end
 end
 
--- ESP melhorado
+-- ESP
 local espF = Instance.new("Folder", gui)
 espF.Name = "ESP"
 
@@ -679,6 +687,7 @@ RS.RenderStepped:Connect(function()
 	end
 end)
 
+-- Comandos via Chat/Box
 local function runCmd(raw)
 	local args = {}
 	for w in string.gmatch(string.lower(raw or ""), "%S+") do table.insert(args, w) end
@@ -712,10 +721,12 @@ local function runCmd(raw)
 		if not espOn then clearESP() end
 	else note("Invalido. ;help") end
 end
+
 cmd.FocusLost:Connect(function(enter)
 	if enter then runCmd(cmd.Text) cmd.Text = "" end
 end)
 
+-- Conexões do Painel
 flyBtn.MouseButton1Click:Connect(function() setFly(not flying) end)
 applyBtn.MouseButton1Click:Connect(function()
 	setFlySpd(numFrom(flyBox, flySpeed))
@@ -995,4 +1006,4 @@ task.spawn(function()
 	while true do refresh() task.wait(4) end
 end)
 
-print("✅ Dragon v10 - Voadora Fling Adicionada")
+print("✅ Dragon v10 carregado com sucesso.")
