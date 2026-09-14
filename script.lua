@@ -1,6 +1,6 @@
 --[[
-	DRAGON ADMIN v9.1
-	Completo + World
+	DRAGON ADMIN v10
+	Sem Main | Fly/Speed em Move | ESP melhor
 ]]
 
 local Players = game:GetService("Players")
@@ -129,7 +129,6 @@ local function tabBtn(text)
 end
 
 local tabs = {
-	Main = tabBtn("Main"),
 	Move = tabBtn("Move"),
 	Teleport = tabBtn("Teleport"),
 	Admin = tabBtn("Admin"),
@@ -138,8 +137,8 @@ local tabs = {
 	World = tabBtn("World"),
 	Player = tabBtn("Player"),
 }
-tabs.Main.BackgroundColor3 = THEME
-tabs.Main.TextColor3 = Color3.fromRGB(255, 255, 255)
+tabs.Move.BackgroundColor3 = THEME
+tabs.Move.TextColor3 = Color3.fromRGB(255, 255, 255)
 
 local content = Instance.new("Frame")
 content.Size = UDim2.new(1, -128, 1, -82)
@@ -156,7 +155,7 @@ local function makePage(name, grid)
 	sc.ScrollBarThickness = 4
 	sc.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	sc.CanvasSize = UDim2.new(0, 0, 0, 0)
-	sc.Visible = name == "Main"
+	sc.Visible = name == "Move"
 	sc.Parent = content
 	if grid then
 		local g = Instance.new("UIGridLayout")
@@ -175,7 +174,6 @@ local function makePage(name, grid)
 	return sc
 end
 
-local pMain = makePage("Main", true)
 local pMove = makePage("Move", true)
 local pTP = makePage("Teleport", false)
 local pAdm = makePage("Admin", true)
@@ -226,15 +224,15 @@ local function numFrom(boxObj, fallback)
 	return tonumber((boxObj.Text or ""):match("[%d%.]+")) or fallback
 end
 
-local flyBtn = btn(pMain, "Fly: OFF")
-local flyBox = box(pMain, "Fly 60")
-local spdBox = box(pMain, "Walk 16")
-local jmpBox = box(pMain, "Jump 50")
-local applyBtn = btn(pMain, "Aplicar valores", THEME)
-local fly80 = btn(pMain, "Fly 80", THEME)
-local fly150 = btn(pMain, "Fly 150", THEME)
-local resetMove = btn(pMain, "Reset movimento")
-
+-- MOVE (fly + speed juntos)
+local flyBtn = btn(pMove, "Fly: OFF")
+local flyBox = box(pMove, "Fly 60")
+local spdBox = box(pMove, "Walk 16")
+local jmpBox = box(pMove, "Jump 50")
+local applyBtn = btn(pMove, "Aplicar valores", THEME)
+local fly80 = btn(pMove, "Fly 80", THEME)
+local fly150 = btn(pMove, "Fly 150", THEME)
+local resetMove = btn(pMove, "Reset movimento")
 local infBtn = btn(pMove, "Inf Jump: OFF")
 local ncBtn = btn(pMove, "Noclip: OFF")
 local sitBtn = btn(pMove, "Sit / Unsit")
@@ -248,6 +246,7 @@ local j50 = btn(pMove, "Jump 50")
 local j120 = btn(pMove, "Jump 120")
 local voidBtn = btn(pMove, "Anti Void: OFF")
 
+-- TELEPORT
 local refBtn = btn(pTP, "Atualizar lista", THEME)
 local tpUp = btn(pTP, "TP Cima +50")
 local tpDown = btn(pTP, "TP Baixo -50")
@@ -259,6 +258,7 @@ list.BackgroundTransparency = 1
 list.Parent = pTP
 Instance.new("UIListLayout", list).Padding = UDim.new(0, 7)
 
+-- ADMIN
 local invBtn = btn(pAdm, "Invisivel: OFF")
 local godBtn = btn(pAdm, "GodMode: OFF")
 local ctpBtn = btn(pAdm, "Click TP: OFF")
@@ -272,6 +272,7 @@ local saveSpawn = btn(pAdm, "Respawn no Save")
 local rjBtn = btn(pAdm, "Rejoin", THEME)
 local hpBtn = btn(pAdm, "Server Hop", Color3.fromRGB(95, 42, 115))
 
+-- VISUAL
 local fbBtn = btn(pVis, "Fullbright: OFF")
 local fogBtn = btn(pVis, "No Fog: OFF")
 local espBtn = btn(pVis, "ESP: OFF")
@@ -285,6 +286,7 @@ local noBlur = btn(pVis, "No Blur")
 local noShadow = btn(pVis, "No Shadows")
 local resetLight = btn(pVis, "Reset Lighting")
 
+-- EXTRA
 local spBtn = btn(pExt, "Spin: OFF")
 local akBtn = btn(pExt, "Anti AFK: OFF")
 local acBtn = btn(pExt, "AutoClick: OFF")
@@ -294,6 +296,7 @@ local hatBtn = btn(pExt, "Rem Hats")
 local zmBtn = btn(pExt, "Zoom Inf")
 local clearFx = btn(pExt, "Limpar efeitos")
 
+-- WORLD
 local gBox = box(pWld, "196.2")
 local gBtn = btn(pWld, "Set Gravity", THEME)
 local moon = btn(pWld, "Lua 30")
@@ -306,6 +309,7 @@ local bright = btn(pWld, "Bright+")
 local dark = btn(pWld, "Dark")
 local resetWorld = btn(pWld, "Reset World")
 
+-- PLAYER
 local copyUser = btn(pPlr, "Copiar User", THEME)
 local copyId = btn(pPlr, "Copiar UserId", THEME)
 local copyJob = btn(pPlr, "Copiar JobId")
@@ -430,11 +434,20 @@ dnB.MouseLeave:Connect(function() goingDown = false end)
 
 local function setSpeed(n)
 	upd()
-	if hum then walkSpeed = n hum.WalkSpeed = n spdBox.Text = "Walk "..n end
+	if hum then
+		walkSpeed = n
+		hum.WalkSpeed = n
+		spdBox.Text = "Walk "..n
+	end
 end
 local function setJump(n)
 	upd()
-	if hum then jumpPower = n hum.UseJumpPower = true hum.JumpPower = n jmpBox.Text = "Jump "..n end
+	if hum then
+		jumpPower = n
+		hum.UseJumpPower = true
+		hum.JumpPower = n
+		jmpBox.Text = "Jump "..n
+	end
 end
 local function setFlySpd(n)
 	flySpeed = n
@@ -576,27 +589,69 @@ local function refresh()
 	end
 end
 
+-- ESP melhorado
 local espF = Instance.new("Folder", gui)
 espF.Name = "ESP"
-RS.RenderStepped:Connect(function()
+
+local function teamColor(plr)
+	if plr.Team and plr.TeamColor then
+		return plr.TeamColor.Color
+	end
+	if lp.Team and plr.Team and plr.Team == lp.Team then
+		return Color3.fromRGB(80, 180, 255)
+	end
+	return Color3.fromRGB(255, 70, 80)
+end
+
+local function clearESP()
 	for _, v in ipairs(espF:GetChildren()) do v:Destroy() end
-	if not espOn then return end
 	for _, plr in ipairs(Players:GetPlayers()) do
-		if plr ~= lp and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-			local bill = Instance.new("BillboardGui")
-			bill.Size = UDim2.new(0, 120, 0, 22)
-			bill.AlwaysOnTop = true
-			bill.StudsOffset = Vector3.new(0, 3, 0)
-			bill.Adornee = plr.Character.HumanoidRootPart
-			bill.Parent = espF
-			local tx = Instance.new("TextLabel")
-			tx.Size = UDim2.new(1, 0, 1, 0)
-			tx.BackgroundTransparency = 1
-			tx.Text = plr.DisplayName
-			tx.TextColor3 = Color3.fromRGB(255, 80, 90)
-			tx.Font = Enum.Font.GothamBold
-			tx.TextSize = 13
-			tx.Parent = bill
+		if plr.Character then
+			local h = plr.Character:FindFirstChild("DragonHL")
+			if h then h:Destroy() end
+		end
+	end
+end
+
+RS.RenderStepped:Connect(function()
+	clearESP()
+	if not espOn then return end
+	upd()
+	for _, plr in ipairs(Players:GetPlayers()) do
+		if plr ~= lp and plr.Character then
+			local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+			local hmd = plr.Character:FindFirstChildOfClass("Humanoid")
+			if hrp and hmd and hmd.Health > 0 then
+				local dist = root and math.floor((root.Position - hrp.Position).Magnitude) or 0
+				local col = teamColor(plr)
+				local sameTeam = lp.Team and plr.Team and lp.Team == plr.Team
+
+				local hl = Instance.new("Highlight")
+				hl.Name = "DragonHL"
+				hl.FillColor = col
+				hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+				hl.FillTransparency = sameTeam and 0.75 or 0.55
+				hl.OutlineTransparency = 0.1
+				hl.Adornee = plr.Character
+				hl.Parent = plr.Character
+
+				local bill = Instance.new("BillboardGui")
+				bill.Size = UDim2.new(0, 160, 0, 42)
+				bill.AlwaysOnTop = true
+				bill.StudsOffset = Vector3.new(0, 3.4, 0)
+				bill.Adornee = hrp
+				bill.Parent = espF
+
+				local tx = Instance.new("TextLabel")
+				tx.Size = UDim2.new(1, 0, 1, 0)
+				tx.BackgroundTransparency = 1
+				tx.Text = string.format("%s\n%d studs  |  HP %d", plr.DisplayName, dist, math.floor(hmd.Health))
+				tx.TextColor3 = col
+				tx.TextStrokeTransparency = 0.3
+				tx.Font = Enum.Font.GothamBold
+				tx.TextSize = 12
+				tx.Parent = bill
+			end
 		end
 	end
 end)
@@ -631,6 +686,7 @@ local function runCmd(raw)
 	elseif c == "esp" then
 		espOn = not espOn
 		tog(espBtn, espOn, "ESP: ON", "ESP: OFF")
+		if not espOn then clearESP() end
 	else note("Invalido. ;help") end
 end
 cmd.FocusLost:Connect(function(enter)
@@ -761,7 +817,11 @@ fogBtn.MouseButton1Click:Connect(function()
 	tog(fogBtn, not on, "No Fog: ON", "No Fog: OFF")
 	Lighting.FogEnd = on and 100000 or 9e9
 end)
-espBtn.MouseButton1Click:Connect(function() espOn = not espOn tog(espBtn, espOn, "ESP: ON", "ESP: OFF") end)
+espBtn.MouseButton1Click:Connect(function()
+	espOn = not espOn
+	tog(espBtn, espOn, "ESP: ON", "ESP: OFF")
+	if not espOn then clearESP() end
+end)
 xrBtn.MouseButton1Click:Connect(function()
 	xray = not xray
 	tog(xrBtn, xray, "XRay: ON", "XRay: OFF")
@@ -796,7 +856,6 @@ resetLight.MouseButton1Click:Connect(function()
 	Lighting.FogEnd = 100000
 	Lighting.GlobalShadows = true
 	cam.FieldOfView = 70
-	note("Lighting reset")
 end)
 spBtn.MouseButton1Click:Connect(function()
 	spinOn = not spinOn
@@ -831,7 +890,7 @@ acBtn.MouseButton1Click:Connect(function()
 		end)
 	elseif cC then cC:Disconnect() cC = nil end
 end)
-fpsBtn.MouseButton1Click:Connect(function() pcall(function() settings().Rendering.QualityLevel = 1 end) note("FPS+") end)
+fpsBtn.MouseButton1Click:Connect(function() pcall(function() settings().Rendering.QualityLevel = 1 end) end)
 cpBtn.MouseButton1Click:Connect(function()
 	upd()
 	if root then
@@ -850,7 +909,6 @@ clearFx.MouseButton1Click:Connect(function()
 	for _, v in ipairs(workspace:GetDescendants()) do
 		if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") or v:IsA("Fire") then v.Enabled = false end
 	end
-	note("Efeitos limpos")
 end)
 gBtn.MouseButton1Click:Connect(function() workspace.Gravity = numFrom(gBox, 196.2) end)
 moon.MouseButton1Click:Connect(function() workspace.Gravity = 30 gBox.Text = "30" end)
@@ -868,48 +926,33 @@ now.MouseButton1Click:Connect(function()
 		workspace.Terrain.WaterTransparency = 1
 		workspace.Terrain.WaterWaveSize = 0
 		workspace.Terrain.WaterWaveSpeed = 0
-		workspace.Terrain.WaterReflectance = 0
 	end)
-	note("Agua removida")
 end)
 noAtm.MouseButton1Click:Connect(function()
 	for _, v in ipairs(Lighting:GetChildren()) do
 		if v:IsA("Atmosphere") then v:Destroy() end
 	end
-	note("Atmosphere removida")
 end)
 bright.MouseButton1Click:Connect(function()
 	Lighting.Brightness = 5
 	Lighting.ClockTime = 12
-	Lighting.OutdoorAmbient = Color3.fromRGB(200, 200, 200)
-	note("Mais brilho")
 end)
 dark.MouseButton1Click:Connect(function()
 	Lighting.Brightness = 0.25
 	Lighting.ClockTime = 0
-	Lighting.OutdoorAmbient = Color3.fromRGB(20, 20, 20)
-	note("Escurecido")
 end)
 resetWorld.MouseButton1Click:Connect(function()
 	Lighting.Brightness = 1
 	Lighting.ClockTime = 14
 	Lighting.FogEnd = 100000
 	Lighting.GlobalShadows = true
-	Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
-	pcall(function()
-		workspace.Terrain.WaterTransparency = 0.3
-		workspace.Terrain.WaterWaveSize = 0.15
-		workspace.Terrain.WaterWaveSpeed = 10
-	end)
 	workspace.Gravity = 196.2
-	note("Mundo resetado")
 end)
-copyUser.MouseButton1Click:Connect(function() pcall(function() setclipboard(lp.Name) end) note("User") end)
+copyUser.MouseButton1Click:Connect(function() pcall(function() setclipboard(lp.Name) end) end)
 copyId.MouseButton1Click:Connect(function() pcall(function() setclipboard(tostring(lp.UserId)) end) end)
 copyJob.MouseButton1Click:Connect(function() pcall(function() setclipboard(game.JobId) end) end)
 copyLink.MouseButton1Click:Connect(function()
 	pcall(function() setclipboard("https://www.roblox.com/games/"..game.PlaceId) end)
-	note("Link copiado")
 end)
 respawn.MouseButton1Click:Connect(function() if hum then hum.Health = 0 end end)
 
@@ -929,4 +972,4 @@ task.spawn(function()
 	while true do refresh() task.wait(4) end
 end)
 
-print("✅ Dragon v9.1")
+print("✅ Dragon v10")
