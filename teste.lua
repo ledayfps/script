@@ -1,6 +1,5 @@
 --[[
-	DRAGON ADMIN v10
-	Sem Main | Fly/Speed em Move | ESP melhor | Dropkick Fling
+	DRAGON ADMIN v10 (Chute Parado + Fling por Área)
 ]]
 
 local Players = game:GetService("Players")
@@ -521,7 +520,7 @@ UIS.JumpRequest:Connect(function()
 	if infJump and hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
 end)
 
--- VOADORA FLING (Com Proteção contra morte e Direcionamento por Tela)
+-- CHUTE PARADO (Aplica Fling nos alvos próximos sem mover o seu personagem)
 local function startFling()
 	if not clickFling or flinging then return end
 	upd()
@@ -529,56 +528,37 @@ local function startFling()
 	if not r or not h then return end
 	
 	flinging = true
-	local oldCF = r.CFrame
 	
-	-- Animação
+	-- Executa animação do Chute
 	pcall(function()
 		dropkickTrack = h:LoadAnimation(dropkickAnim)
 		dropkickTrack:Play()
 	end)
-	
-	-- Imunidade temporária contra Morte e Colisão Brutal
-	h:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
-	for _, p in ipairs(c:GetDescendants()) do
-		if p:IsA("BasePart") then
-			p.CanCollide = false
-		end
-	end
 
 	task.spawn(function()
-		local hitPos = mouse.Hit and mouse.Hit.Position or (r.Position + r.CFrame.LookVector * 20)
-		local targetCF = CFrame.new(r.Position, Vector3.new(hitPos.X, r.Position.Y, hitPos.Z))
-		
 		local t0 = os.clock()
 		while os.clock() - t0 < 0.45 do
 			RS.Heartbeat:Wait()
 			
-			if h and h.Health > 0 then
-				h.Health = h.MaxHealth
+			-- Procura alvos em um raio de até 10 blocos ao redor do seu chute
+			for _, p in ipairs(Players:GetPlayers()) do
+				if p ~= lp and p.Character then
+					local targetHRP = p.Character:FindFirstChild("HumanoidRootPart")
+					if targetHRP and (targetHRP.Position - r.Position).Magnitude <= 10 then
+						-- Empurra o jogador atingido em alta velocidade
+						local launchDir = (targetHRP.Position - r.Position).Unit + Vector3.new(0, 0.5, 0)
+						targetHRP.AssemblyLinearVelocity = launchDir * 9000
+						targetHRP.AssemblyAngularVelocity = Vector3.new(9000, 9000, 9000)
+					end
+				end
 			end
-			
-			r.CFrame = targetCF
-			r.AssemblyLinearVelocity = targetCF.LookVector * 5000 + Vector3.new(0, 2500, 0)
-			r.AssemblyAngularVelocity = Vector3.new(5000, 5000, 5000)
 		end
-		
-		-- Finaliza Força
-		r.AssemblyLinearVelocity = Vector3.zero
-		r.AssemblyAngularVelocity = Vector3.zero
-		r.CFrame = oldCF + Vector3.new(0, 2, 0)
 		
 		if dropkickTrack then
 			dropkickTrack:Stop()
 		end
 		
-		for _, p in ipairs(c:GetDescendants()) do
-			if p:IsA("BasePart") then p.CanCollide = true end
-		end
-		
-		h:SetStateEnabled(Enum.HumanoidStateType.Dead, true)
-		h:ChangeState(Enum.HumanoidStateType.GettingUp)
-		
-		task.wait(0.2)
+		task.wait(0.1)
 		flinging = false
 	end)
 end
@@ -655,7 +635,7 @@ RS.RenderStepped:Connect(function()
 			if hrp and hmd and hmd.Health > 0 then
 				local dist = root and math.floor((root.Position - hrp.Position).Magnitude) or 0
 				local col = teamColor(plr)
-				local sameTeam = lp.Team and plr.Team and lp.Team == plr.Team
+				local sameTeam = lp.Team and plr.Team and lp.Team == lp.Team
 
 				local hl = Instance.new("Highlight")
 				hl.Name = "DragonHL"
@@ -791,7 +771,7 @@ ctpBtn.MouseButton1Click:Connect(function() clickTP = not clickTP tog(ctpBtn, cl
 flBtn.MouseButton1Click:Connect(function()
 	clickFling = not clickFling
 	tog(flBtn, clickFling, "Voadora Fling [F]: ON", "Voadora Fling [F]: OFF")
-	note(clickFling and "Clique ou aperte F no player" or "off")
+	note(clickFling and "Ativo: Clique para chutar" or "off")
 end)
 afBtn.MouseButton1Click:Connect(function()
 	antiFling = not antiFling
