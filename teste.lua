@@ -1,5 +1,5 @@
 --[[
-	DRAGON ADMIN v10 (Chute Parado + Fling por Área)
+	DRAGON ADMIN v11 (Chute Parado - Anti-Self Fling)
 ]]
 
 local Players = game:GetService("Players")
@@ -520,16 +520,17 @@ UIS.JumpRequest:Connect(function()
 	if infJump and hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
 end)
 
--- CHUTE PARADO (Aplica Fling nos alvos próximos sem mover o seu personagem)
+-- CHUTE PARADO FIXADO (Ancora você no chão enquanto joga o alvo longe)
 local function startFling()
 	if not clickFling or flinging then return end
 	upd()
-	local c, r, h = lp.Character, root, hum
+	local r, h = root, hum
 	if not r or not h then return end
 	
 	flinging = true
+	local originalCF = r.CFrame
 	
-	-- Executa animação do Chute
+	-- Executa a animação
 	pcall(function()
 		dropkickTrack = h:LoadAnimation(dropkickAnim)
 		dropkickTrack:Play()
@@ -540,15 +541,20 @@ local function startFling()
 		while os.clock() - t0 < 0.45 do
 			RS.Heartbeat:Wait()
 			
-			-- Procura alvos em um raio de até 10 blocos ao redor do seu chute
+			-- Mantém o seu personagem parado no mesmo lugar durante o chute
+			r.AssemblyLinearVelocity = Vector3.zero
+			r.AssemblyAngularVelocity = Vector3.zero
+			r.CFrame = originalCF
+
+			-- Procura alvos em um raio de até 12 blocos do seu chute
 			for _, p in ipairs(Players:GetPlayers()) do
 				if p ~= lp and p.Character then
 					local targetHRP = p.Character:FindFirstChild("HumanoidRootPart")
-					if targetHRP and (targetHRP.Position - r.Position).Magnitude <= 10 then
-						-- Empurra o jogador atingido em alta velocidade
-						local launchDir = (targetHRP.Position - r.Position).Unit + Vector3.new(0, 0.5, 0)
-						targetHRP.AssemblyLinearVelocity = launchDir * 9000
-						targetHRP.AssemblyAngularVelocity = Vector3.new(9000, 9000, 9000)
+					if targetHRP and (targetHRP.Position - r.Position).Magnitude <= 12 then
+						-- Empurra o alvo com alta velocidade sem afetar você
+						local launchDir = (targetHRP.Position - r.Position).Unit + Vector3.new(0, 0.6, 0)
+						targetHRP.AssemblyLinearVelocity = launchDir * 10000
+						targetHRP.AssemblyAngularVelocity = Vector3.new(10000, 10000, 10000)
 					end
 				end
 			end
@@ -558,7 +564,7 @@ local function startFling()
 			dropkickTrack:Stop()
 		end
 		
-		task.wait(0.1)
+		task.wait(0.05)
 		flinging = false
 	end)
 end
@@ -986,4 +992,4 @@ task.spawn(function()
 	while true do refresh() task.wait(4) end
 end)
 
-print("✅ Dragon v10 carregado com sucesso.")
+print("✅ Dragon v11 carregado com sucesso.")
